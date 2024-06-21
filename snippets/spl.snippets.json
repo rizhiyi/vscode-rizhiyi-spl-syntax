@@ -1,0 +1,697 @@
+{
+    "指定索引名": {
+        "prefix": ["index"],
+        "body": [
+            "index=${1:yotta} appname:${2:rizhiyi} AND tag:${3:rizhiyi}",
+            ""
+        ],
+        "description": "指定索引查询"
+    },
+    "指定时间范围": {
+        "prefix": ["starttime", "endtime"],
+        "body": [
+            "starttime=\"${1:now/d}\" endtime=\"${2:now}\" ",
+            ""
+        ],
+        "description": "指定时间范围"
+    },
+    "accum <field> [as <new-field>]": {
+        "prefix": "accum",
+        "body": [
+            "accum ${1:<field>} ${2| ,as <new-field>|}",
+            ""
+        ],
+        "description": "对每个事件中为数字的指定字段进行逐次累加，得到的累加结果会放入该字段或者新字段中"
+    },
+    "addcoltotals [<field-list>] [labelfield] [label]": {
+        "prefix": "addcoltotals",
+        "body": [
+            "addcoltotals ${1| ,<field-list>|} ${2| ,labelfield=|} ${3| ,label=\"\"|}",
+            ""
+        ],
+        "description": "将新结果附加到搜索结果集的末尾。结果包含每个数字字段的总和，也可以指定要汇总的字段"
+    },
+    "addtotals <addtotals-param>*": {
+        "prefix": "addtotals",
+        "body": [
+            "addtotals ${1| ,row=|} ${2| ,col=|} ${3| ,labelfield=|} ${4| ,label=\"\"|} ${5| ,fieldname=\"\"|} ${6| ,field_list|}",
+            ""
+        ],
+        "description": "为每个搜索结果计算所有数值字段的算术和。可以指定需要求和的字段列表。设置col=true时，在末尾添加计算出的新结果表示字段的列和"
+    },
+    "addinfo": {
+        "prefix": "addinfo",
+        "body": [
+            "addinfo",
+            ""
+        ],
+        "description": "向每个事件添加包含有关搜索的全局通用信息的字段"
+    },
+    "append <sub-pipeline>": {
+        "prefix": "append",
+        "body": [
+            "append [[",
+            "   ${0}",
+            "]]",
+            ""
+        ],
+        "description": "append命令允许通过将子管道命令的结果附加在主管道之后，达到合并两个管道结果的目的"
+    },
+    "appendcols param-options* [[ subsearch ]]": {
+        "prefix": "appendcols",
+        "body": [
+            "appendcols override=${1|true,false|} maxout=${0}  [[",
+            "   ",
+            "]]",
+            ""
+        ],
+        "description": "添加一个子搜索，并将子搜索的结果按顺序合并到父搜索上"
+    },
+    "autoregress <field>[ as <as-field> ] p=<num>|<num>-<num>": {
+        "prefix": "autoregress",
+        "body": [
+            "autoregress ${1:<field>} as ${2:<as-field>} p=${3:<num>}",
+            ""
+        ],
+        "description": "将当前事件之前的事件中的字段值拷贝到当前事件，该字段可以用于后续的表达式计算等"
+    },
+    "bucket <field> <bucketing-option> [as <field>]": {
+        "prefix": "bucket",
+        "body": [
+            "bucket ${1:<field>} ${2|span,ranges,timeranges|}=${3|s,m,h,d,w,(<time>\\,<time>),(<number>\\,<number>)|} as ${4:<new-field>}",
+            ""
+        ],
+        "description": "将字段中连续的数字值，放入离散集的数据桶中，该变量可用于后续的stats等命令的分组字段中"
+    },
+    "chart [<chart-params>]* <stats-single-value-func> [<stats-single-value-func>]* [over <field> <chart-over-params>*] [by <field> <chart-by-params>*]": {
+        "prefix": "chart",
+        "body": [
+            "chart ${1| ,sep=,format=,cont=,limit=,rendertype=}  ${2| ,bins=,span=,startindex=,endindex=} ${3|avg,min,max,sun,count,distinct_count,first,last,earliest,latest,rate,exact_dc,sumsq,var,stddev,mad|}() ",
+            ""
+        ],
+        "description": "按照over字段进行分桶后的统计行为"
+    },
+    "collect index=<field> [marker=\"<key>=<value>,<key>=<value> ...\"] [testmode=<bool>]": {
+        "prefix": "collect",
+        "body": [
+            "collect index=${1:<field>} ${2| ,marker=\"\"|} ${3| ,testmode=|}",
+            ""
+        ],
+        "description": "将查询的结果写到索引，需要有运行collect命令的权限"
+    },
+    "composite": {
+        "prefix": "composite",
+        "body": [
+            "composite ${1|avg,min,max,sun,count,distinct_count,first,last,earliest,latest,rate,exact_dc,sumsq,var,stddev,list,values,top,es,dhg,hg,pct,pct_ranks,rb,sparkline,mad|}() by ${2:<field-list>}",
+            ""
+        ],
+        "description": "优化版的stats，一定情况下可减少部分内存使用，使用方法完全相同。与stats的性能对比：无byField时，与stats相同；单byField时，增加少量时间消耗；多byField时，增加少量时间消耗，减少部分内存使用"
+    },
+    "correlation <bucket-field>": {
+        "prefix": "correlation",
+        "body": [
+            "correlation ${1|bucket_field=,excludeone=|}${2|<field>,true,false|}",
+            ""
+        ],
+        "description": "按照bucket指定的分桶方式，计算搜索结果如arr_all=[100,3213,421]和每个字段对应的每个值的统计值如arr_k1_v1=[31,1030,123]，再根据pearson算法计算两个数组的相关性，保留每个字段的相关性最高的值，并给出范围在[-1, 1]之间的相关性得分"
+    },
+    "dbxexec <connection> <param-options>* <query> [<params>]": {
+        "prefix": "dbxexec",
+        "body": [
+            "dbxexec connection=\"${0}\" connection=\"${1}\"",
+            ""
+        ],
+        "description": ""
+    },
+    "dbxlookup [<chunksize>] (<preset-lookup-option> | <lookup-option>)": {
+        "prefix": "dbxlookup",
+        "body": [
+            "dbxlookup lookup=\"${0}\"",
+            ""
+        ],
+        "description": "类似sql的连接，将来自远程数据库表的结果和子管道的结果连接在一起"
+    },
+    "dbxoutput <output>": {
+        "prefix": "dbxoutput",
+        "body": [
+            "dbxoutput output=\"${0}\"",
+            ""
+        ],
+        "description": "将当前搜索的数据按照已配置的dbxoutput名称写出到远程数据库"
+    },
+    "dbxquery connection <dbx-params>* <dbx-query-procedure> [ params=<string>[,<string>]* ]": {
+        "prefix": "dbxquery",
+        "body": [
+            "dbxquery connection=\"${0}\" query=\"${1}\"",
+            ""
+        ],
+        "description": "是一个可以使用sql来查远程数据库的数据并作为spl的查询语句的命令（不支持跨库联查，如果要使用两个库的话可以使用append，join等）"
+    },
+    "dedup [<dedup-count>] <field-list> [<dedup-param>]*": {
+        "prefix": "",
+        "body": [
+            "dedup ${1:<dedup-count>} ${2:<field-list>}",
+            ""
+        ],
+        "description": "该命令可以对搜索结果中指定字段值的重复情况进行去重和过滤"
+    },
+    "delete": {
+        "prefix": "delete",
+        "body": [
+            "delete",
+            ""
+        ],
+        "description": "该命令可以对搜索结果中query部分命中的原始日志进行删除"
+    },
+    "download [filename=<string>] [download-params]*": {
+        "prefix": "download",
+        "body": [
+            "download filename=\"${1}\" ${2| ,fileformat=,maxsize=,charset=maxecents=|} ${3| ,csv,json,txt,g,m,k,b,UTF-8,GBK|}",
+            ""
+        ],
+        "description": "该命令可以download命令之前产生的结果下载到外部文件"
+    },
+    "esma <field> [<as-field-clause>] <param-options>*": {
+        "prefix": "esma",
+        "body": [
+            "esma ${1:<field>} ${2| ,timefield=,period=,futurecount=|}",
+            ""
+        ],
+        "description": "该命令可以对某一个字段的未来值进行预测"
+    },
+    "eval <field>=<expression> [, <field>=<expression>]*": {
+        "prefix": "eval",
+        "body": [
+            "eval ${1:<field>}=${2|abs,exp,ln,empty,case,ceil,cidrmatch,coalesce,floor,format,formatdate,datetime_diff,if,in,isnum,isstr,len,log,pi,pow,sqrt,acos,acosh,asin,asinh,atan,atan2,atanh,cos,cosh,hypot,sin,sinh,tan,tanh,entropy,lower,match,contains,max,min,mvsum,mvavg,mvappend,mvcount,mvdedup,mvfilter,mvfind,mvindex,mvjoin,mvmap,mvdelta,mvrange,mvsort,mvszip,split,now,parsedate,printf,relative_time,round,substring,todouble,tonumber,tolong,tostring,tojson,trim,ltrim,rtrim,replace,typeof,upper,urlencode,urldecode,base64encode,base64decode,unicodeencode,unicodedecode,md5,sha1,sha256,sha512,ip2long,long2ip,cidr2long,is_valid_mac,is_valid_ip,is_valid_mask,is_valid_cidr,expand_ip_range_to_cidr,like,isnotnull,isblank,islong,isbool|}(${0})",
+            ""
+        ],
+        "description": "计算表达式并将生成的值放入到新的字段中"
+    },
+    "eventstats (<stats-function> [as <field>])+ [by <field-list>]": {
+        "prefix": "eventstats",
+        "body": [
+            "eventstats ${1|avg,min,max,sun,count,distinct_count,first,last,earliest,latest,rate,exact_dc,sumsq,var,stddev,list,values,top,es,dhg,hg,pct,pct_ranks,rb,sparkline,mad|} as ${2:<field>} by ${3:<field-list>}",
+            ""
+        ],
+        "description": "提供统计信息，可以选择字段进行分组，并且将按照当前行所属于的分组的统计结果作为新的字段值添加在本行"
+    },
+    "fields [<operator>] <field-list>": {
+        "prefix": "fields",
+        "body": [
+            "fields ${1| ,+,-|}${2:<field-list>}",
+            ""
+        ],
+        "description": "通过操作符保留或排除结果中的系列字段。"
+    },
+    "filldown [<space-or-comma-field-list>]": {
+        "prefix": "filldown",
+        "body": [
+            "filldown",
+            ""
+        ],
+        "description": "将某些字段的null值用上一个最近的非null值进行填充，支持通配符"
+    },
+    "fillnull [value=<string>] <field-list>": {
+        "prefix": "fillnull",
+        "body": [
+            "fillnull value=\"0\" ${1:<field-list>}",
+            ""
+        ],
+        "description": "将空值替换为指定值。空值是在特定结果中缺失但在另一结果中存在的字段值。使用fillnull与字符串替换空字段值"
+    },
+    "foreach <wc-field-list> <foreach-options>* <sub-pipe>": {
+        "prefix": "foreach",
+        "body": [
+            "foreach ${1:*.*} [[",
+            "   ${2:eval total=total + <<FIELD>>}",
+            "]]",
+            ""
+        ],
+        "description": "对字段列表执行流式命令"
+    },
+    "fromes <fromes-options>* <index> <querydsl>": {
+        "prefix": "fromes",
+        "body": [
+            "fromes host=${1:<host>} port=${2:<port>} index=${3:<index>} querydsl=${0}",
+            ""
+        ],
+        "description": "是一个可以使用elastic dsl来查elasticsearch的数据并作为spl的查询语句的命令"
+    },
+    "fromkakfapy (bootstrap-servers | topic | action | partitions | offset | limit | timeout-ms)*": {
+        "prefix": "fromkakfapy",
+        "body": [
+            "fromkakfapy bootstrap-servers=${1:<bootstrap-servers>} topic=${2:<topic>} action=${3|consume|show-partition-info|} ${4| ,offset=,limit=} timeout-ms=1000",
+            ""
+        ],
+        "description": "消费kafka的数据并作为spl的查询语句的命令"
+    },
+    "gentimes <start> <param-options>*": {
+        "prefix": "gentimes",
+        "body": [
+            "gentimes start=${1} end=${2} ${3|increment,humantime,timezone|}=${4|s,m,h,d,true,false,+08:00|} ",
+            ""
+        ],
+        "description": "可以生成指定范围的时间戳数据"
+    },
+    "geostats [<geostats-params>]* <stats-single-value-func> [<stats-single-value-func>]* [by <by-field>]": {
+        "prefix": "geostats",
+        "body": [
+            "geostats ${1| ,latfield=,longfield=,outputlatfield=,outputlongfield=,binspanlat=,binspanlong=,maxzoomlevel=|} ${2|avg,min,max,sun,count,distinct_count,first,last,earliest,latest,rate,exact_dc,sumsq,var,stddev,list,values,top,es,dhg,hg,pct,pct_ranks,rb,sparkline,mad|}() as ${3:<field>} by ${0}",
+            ""
+        ],
+        "description": "使⽤geostats命令可以基于地理位置信息，即经度和纬度进行分区域统计"
+    },
+    "head [limit-expr]": {
+        "prefix": "head",
+        "body": [
+            "head ${0:<num>}",
+            ""
+        ],
+        "description": "以搜索顺序，返回前N个结果或者直到eval表达式为false的结果。使用与limit相同"
+    },
+    "history [showall | onlysearch | onlyapp | events]*": {
+        "prefix": "history",
+        "body": [
+            "history ${1|showall,onlysearch,onlyapp,events|}=${2|true,false|}",
+            ""
+        ],
+        "description": "查看当前用户的搜索历史，拥有admin角色权限的用户可以查看所有用户的搜索历史"
+    },
+    "inputlookup <param-options>* <lookup-type>? <filename-or-kvstorename-or-assetname>": {
+        "prefix": "inputlookup",
+        "body": [
+            "inputlookup ${0}",
+            ""
+        ],
+        "description": "使⽤inputlookup 命令可以读取lookup的表，⽬前lookup表⽀持csv⽂件(以.csv为后缀名)，kv字典，资产实体（通过lookup-type参数指定）。csv⽂件第⼀⾏需为字段名的信息"
+    },
+    "iplocation [prefix=<string>] <field>": {
+        "prefix": "iplocation",
+        "body": [
+            "iplocation ${0:<field>}",
+            ""
+        ],
+        "description": "从ip地址抽取地理信息"
+    },
+    "join <param-options>* <field-list> [[ subsearch ]]": {
+        "prefix": "join",
+        "body": [
+            "join type=${1|left,inner|} ${2:<field-list>} [[",
+            "   ${0}",
+            "]]",
+            ""
+        ],
+        "description": "对父管道的结果和子管道的结果进行类似sql的join"
+    },
+    "jpath [input=<field>] output=<field> path=<json-path>": {
+        "prefix": "jpath",
+        "body": [
+            "jpath input=${1:<field>} output=${2:<field>} path=${3}",
+            ""
+        ],
+        "description": "jpath用于支持对json的数据处理，提供类似xpath的机制，并配合上多值函数对json数据进行提取和处理"
+    },
+    "kvextract [<field>] <kvextract-param>*": {
+        "prefix": "kvextract",
+        "body": [
+            "kvextract ${1:field} ${2| ,clean_keys=,kvdelim=,limit=,maxchars=,mv_add=,pairdelim=|}",
+            ""
+        ],
+        "description": "提供抽取功能，从指定字段的字符串值中按照指定的键值分割符和对分隔符进行键值抽取，抽取出来的结果以新字段的形式添加在结果中"
+    },
+    "ldapfetch <ldap-base-param> <dn> [<attrs>]": {
+        "prefix": "ldapfetch",
+        "body": [
+            "ldapfetch domain=\"${1}\" search=\"${2}\" attrs=\"${3}\"",
+            ""
+        ],
+        "description": "该命令可以将指定dn下属性值返回并添加在每条结果后，dn为前序命令产生的字段名称"
+    },
+    "ldapfilter <ldap-base-param> <search> <ldap-filter-param>*": {
+        "prefix": "ldapfilter",
+        "body": [
+            "ldapfilter domain=\"${1}\" search=\"${2}\" attrs=\"${3}\"",
+            ""
+        ],
+        "description": "该命令可以将指定search语句中的属性值返回并添加在每条结果后，其中domain和search都可以由前面命令产生的结果值填充"
+    },
+    "ldapgroup <ldap-base-param> [<groupdn>]": {
+        "prefix": "ldapgroup",
+        "body": [
+            "ldapgroup domain=\"${1}\" groupdn=\"${2}\"",
+            ""
+        ],
+        "description": "该命令可以查询规定dn下所有关联的节点信息，结果将增加member_dn member_domain member_name member_type mv_combo五个字段，其中最后一个字段为前四个字段的拼接值"
+    },
+    "ldapsearch <ldap-base-param> <search> <ldap-search-param>*": {
+        "prefix": "ldapsearch",
+        "body": [
+            "ldapsearch domain=\"${1}\" search=\"${2}\" ",
+            ""
+        ],
+        "description": "该命令可以对ldap进行搜索并将指定结果返回"
+    },
+    "ldaptestconnection <ldap-base-param>": {
+        "prefix": "ldaptestconnection",
+        "body": [
+            "ldaptestconnection domain=\"${0}\"",
+            ""
+        ],
+        "description": "该命令可以测试连接已配置好的ldap环境"
+    },
+    "limit [limit-expr]": {
+        "prefix": "limit",
+        "body": [
+            "limit ${1:<number>}",
+            ""
+        ],
+        "description": "以搜索顺序，返回前N个结果或者直到eval表达式为false的结果。使用与head相同"
+    },
+    "loadjob <id> ,<type> [<artifact-offset>]": {
+        "prefix": "loadjob",
+        "body": [
+            "loadjob id=${1:<number> type=\"${2:<quoted-string>}\"}",
+            ""
+        ],
+        "description": "加载先前完成的定时任务或告警的执行结果。由ID 和type唯一确定一个任务。如果最近一次时间点的结果不存在，则临时运行原始查询"
+    },
+    "localop": {
+        "prefix": "localop",
+        "body": [
+            "localop",
+            ""
+        ],
+        "description": "localop命令强制随后的命令都在spl单机执行"
+    },
+    "lookup <lookup-field-list> <lookup-type>? <filename-or-kvstorename-or-assetname> on <join-field-list> <param-options>*": {
+        "prefix": "lookup",
+        "body": [
+            "lookup ${1:<lookup-field-list>} ${2:<file-name>} on ${2:<lookup-field>}=${3:join-field}",
+            ""
+        ],
+        "description": "使用lookup命令可以将外部文件中的结果和当前管道的结果进行join，可为/data/rizhiyi/spldata/lookup下的本地文件、outputlookup生成的文件或kvstore存储或资产实体"
+    },
+    "lookup2 <script-name> <param-options>*": {
+        "prefix": "lookup2",
+        "body": [
+            "lookup2 ${1:<script-name>} outputfields ${2:<outputfields>}",
+            ""
+        ],
+        "description": "使用lookup2命令可以添加自定义字段。通过在指定脚本存放路径下(默认为：/data/rizhiyi/spldata/lookup/script)添加相关的配置文件以及python处理数据文件即可添加自定义字段"
+    },
+    "makecontinuous [<field>] <param-options>*": {
+        "prefix": "makecontinuous",
+        "body": [
+            "makecontinuous ${1:<field>} ${2|span,start,end|}=${3|s,m,h,d,w|}",
+            ""
+        ],
+        "description": "在一定数值或时间范围内，根据给定的区间大小，对原始数据升序处理，并补充不连续的区间，区间的划分采用向前圆整的方式"
+    },
+    "makemv [delim=<string> | tokenizer=<string>] [allowempty=<bool>] <field>": {
+        "prefix": "makemv",
+        "body": [
+            "makemv ${1|delim,tokenizer,allowempty|}=${0} ${2:<field>}",
+            ""
+        ],
+        "description": "使用分隔符或者带捕获组的正则表达式，将单值字段转换为多值字段"
+    },
+    "makeresults [count=<int>]": {
+        "prefix": "makeresults",
+        "body": [
+            "makeresults count=${0:<number>}",
+            ""
+        ],
+        "description": "构造指定的结果"
+    },
+    "map \"<subsearch_command>\" [maxsearches = <int>]": {
+        "prefix": "map",
+        "body": [
+            "map \"",
+            "  ${0} ",
+            "\"",
+            "maxsearches=10",
+            ""
+        ],
+        "description": "该命令可以将上次搜索结果应用于接下来的搜索中， 类似于python的map功能"
+    },
+    "movingavg <field>[,window] [as <as_field>] [by <by-field-list>]": {
+        "prefix": "movingavg",
+        "body": [
+            "movingavg ${1:<field>},5 as ${2:<new-field>} by ${3:<field-list>}",
+            ""
+        ],
+        "description": "在一个指定大小的移动窗口下计算某个数值字段的移动平均值"
+    },
+    "multireport <sub-pipeline>*": {
+        "prefix": "multireport",
+        "body": [
+            "multireport [[",
+            "   ${0}",
+            "]]",
+            ""
+        ],
+        "description": "multireport 指令可以对同一数据流做不同的处理，最后汇聚输出"
+    },
+    "multisearch [[ <subsearch> ]] [[ <subsearch> ]]...": {
+        "prefix": "multisearch",
+        "body": [
+            "multisearch [[",
+            "   ${1}",
+            "]] [[",
+            "       ${2}",
+            "]]",
+            ""
+        ],
+        "description": "同时执行多个搜索，把搜索结果合并起来。需要至少两个子查询"
+    },
+    "mvcombine [<sep>] <field>": {
+        "prefix": "mvcombine",
+        "body": [
+            "mvcombine sep=\",\" ${0:<field>}",
+            ""
+        ],
+        "description": "将除指定字段外，其他字段值均相等的行合并为一行，指定字段将合并为一个数组值"
+    },
+    "mvexpand <multi-value-field> <param-options>*": {
+        "prefix": "mvexpand",
+        "body": [
+            "mvexpand ${1:<multi-value-field>}",
+            ""
+        ],
+        "description": "将一行变成多行，指定字段如果为数组值那么就分成一行一个的值，如果为单值则无影响，其他字段的值原样复制"
+    },
+    "outputlookup <param-options>* <lookup-type>? <filename-or-kvstorename-or-assetname>": {
+        "prefix": "outputlookup",
+        "body": [
+            "outputlookup ${1:<file-name>}",
+            ""
+        ],
+        "description": "使用 outputlookup 命令可以生成字典管理中的 csv 文件；也可以生成kvstore或资产实体，名称和类型在命令中指定"
+    },
+    "parse [field=<field>] “<regex>” [max_match=<int>]": {
+        "prefix": "parse",
+        "body": [
+            "parse field=${1:<field>} \"${0:<regex>}\"",
+            ""
+        ],
+        "description": "用于搜索时动态抽取字段"
+    },
+    "partition [<int>] [by <field>] [[ sub_stats_command ]]": {
+        "prefix": "partition",
+        "body": [
+            "partition ${1:<int-number>} by ${2:<field>} [[",
+            "   ${0}",
+            "]]",
+            ""
+        ],
+        "description": "使用partition命令可以将指定统计搜索中的分组字段的值进行随机分组，以解决离散值过多引起的统计分组数限制的问题"
+    },
+    "rare <field> <rare-option>* [by-fieldlist-clause]": {
+        "prefix": "rare",
+        "body": [
+            "rare ${1:<field>} ${2|countfield,percentfield,showcount,showperc,limit,maxdoc|}=${3|<field>,<int-number>,true,false|} by ${4:<field>}",
+            ""
+        ],
+        "description": "获取字段出现次数最少的值的集合"
+    },
+    "rename <rename-item> [,<rename-item>]*": {
+        "prefix": "rename",
+        "body": [
+            "rename ${1:<src-field>} as ${2:<dest-field>}",
+            ""
+        ],
+        "description": "重新命名指定字段 将src-field的字段，重命名为dest-field，可用于结果集中字段名的修改，比如输出为中文字段名；同时目前支持对多个字段同时进行重命名操作,支持通配符"
+    },
+    "replace value-item [,value-item]* [IN <field-list>]": {
+        "prefix": "replace",
+        "body": [
+            "replace ${1:<source-String>} with ${2:<target-String>} IN ${3:<field>}",
+            ""
+        ],
+        "description": "使用指定字符串替换字段值，可以指定一个或多个字段，仅替换指定字段的值，如果没有指定字段，则替换所有字段"
+    },
+    "rest <url_path> <apikey_field> [count_field] [timeout_field] [rest_field]": {
+        "prefix": "rest",
+        "body": [
+            "rest ${1:<url_path>} apikey=${2:<apikey_field>} ${3|count,timeout,<field>|}=${4|<number>,<field_value>|}",
+            ""
+        ],
+        "description": "调用日志易API，返回对应结果"
+    },
+    "rollingstd <field>[,<window>] [as <as-field>] [by <by-field-list>]": {
+        "prefix": "rollingstd",
+        "body": [
+            "rollingstd ${1:<field>},${2:<window-number>} as ${3:<as-field>} by ${4:<by-field>}",
+            ""
+        ],
+        "description": "计算移动标准差"
+    },
+    "save <param-options>* <output-file>": {
+        "prefix": "save",
+        "body": [
+            "save ${1:<file-name>}",
+            ""
+        ],
+        "description": "可将搜索的结果保存为文件，目前仅支持csv格式"
+    },
+    "search": {
+        "prefix": "search",
+        "body": [
+            "search ${1:这里太难描述了, 看检索参考文档吧...}",
+            ""
+        ],
+        "description": "search命令的query参数描述对原始日志的搜索条件，在第一个管道前边时从索引取数据，不需要加命令名字，在管道之后位置相当于where"
+    },
+    "sort [<sort-count>] by <sort-item-list>": {
+        "prefix": "sort",
+        "body": [
+            "sort -${1:<sort-field>} by ${2:<by-field>}",
+            ""
+        ],
+        "description": "按照指定的字段对搜索结果进行排序。对于数值类型将按照数值进行排序，对于字符串类型将按照字典序进行排序"
+    },
+    "stats (<stats_function> [as <field>])+ [by <field-list>]": {
+        "prefix": "stats",
+        "body": [
+            "stats ${1|avg,correlation,count,covariance,date_histogram,dc,derivative,dhg,distinct,distinct_count,earliest,es,estdc,extend_stat,first,hg,histogram,kurtosis,last,latest,list,mad,max,min,pct,pct_ranks,percentile_ranks,percentiles,range_bucket,rate,rb,signify,skewness,sparkline,stddev,sum,sumsq,top,values,var|}(${0}) as ${2:<as-field>} by ${3:<by-field>}",
+            ""
+        ],
+        "description": "提供统计信息，可以选择按照字段分组"
+    },
+    "strcat [allrequired=<bool>] <source-field>+ <dest-field>": {
+        "prefix": "strcat",
+        "body": [
+            "strcat ${1:<source-field-list>} ${2:<dest-field>}",
+            ""
+        ],
+        "description": "连接来自2个或更多字段的值。将字段值和指定字符串组合到一个新字段中"
+    },
+    "streamstats [<streamstats-params>]* <streamstats-func-as> [, <streamstats-func-as> ]* [by <field-list>]": {
+        "prefix": "streamstats",
+        "body": [
+            "streamstats ${1|reset_on_change,reset_before,reset_after,current,windows,time_window,global,allnum,timefield|}=${2} ${3|avg,correlation,count,covariance,date_histogram,dc,derivative,dhg,distinct,distinct_count,earliest,es,estdc,extend_stat,first,hg,histogram,kurtosis,last,latest,list,mad,max,min,pct,pct_ranks,percentile_ranks,percentiles,range_bucket,rate,rb,signify,skewness,sparkline,stddev,sum,sumsq,top,values,var|}(${0}) as ${4:<as-field>} by ${5:<by-field>}",
+            ""
+        ],
+        "description": "可以对数据的连续变化进行累积性的统计，并将统计结果以新字段的方式添加在原始数据中"
+    },
+    "table <comma-splitted-fieldlist> | <space-splitted-fieldlist>": {
+        "prefix": "table",
+        "body": [
+            "table ${1:<field-list>}",
+            ""
+        ],
+        "description": "将查询结果以表格形式展示，并对字段进行筛选，如果日志不包含筛选字段，则用空行显示，支持通配符"
+    },
+    "timechart [<timechart-params>]* <stats-single-value-func> [<stats-single-value-func>]* [by <field> <timechart_by_params>*] [where <expression>]": {
+        "prefix": "timechart",
+        "body": [
+            "timechart ${1|sep,format,cont,limit,bins,span,minspan,startindex,endindex,rendertype|}=${2} ${3|avg,correlation,count,covariance,date_histogram,dc,derivative,dhg,distinct,distinct_count,earliest,es,estdc,extend_stat,first,hg,histogram,kurtosis,last,latest,list,mad,max,min,pct,pct_ranks,percentile_ranks,percentiles,range_bucket,rate,rb,signify,skewness,sparkline,stddev,sum,sumsq,top,values,var|}(${0}) as ${4:<as-field>} by ${5:<by-field>}",
+            ""
+        ],
+        "description": "timechart的行为是将时间分桶后的统计行为，相当于bucket | stats by"
+    },
+    "timewrap <timespan> param-options*": {
+        "prefix": "timewrap",
+        "body": [
+            "timewrap ${1:<int>}${2|s,m,h,d,w,M,y|} ${3|align,series,timeformat,timefield|}=${4|now,end,relative,exact,short|}",
+            ""
+        ],
+        "description": "对timechart命令的结果进⾏显⽰或者折叠，可以使⽤timewrap命令实现指定时间周期的数据的⽐较，⽐如按天或者按⽉"
+    },
+    "top <size> <field> <param-options>* [<by-fieldlist-clause>]": {
+        "prefix": "top",
+        "body": [
+            "top ${1:<int-number>} ${2:<field>} by ${3:<by-field>}",
+            ""
+        ],
+        "description": "获取字段出现次数前N的值的集合，输出字段包括field"
+    },
+    "transaction <field-list> <txn-definition-opt>* <memcontrol-opt>* <trans-states>?": {
+        "prefix": "transaction",
+        "body": [
+            "transaction ${1:<field-list>} ${2|maxspan,maxevents,startswith,endswith,contains,timeshift,keepopentxn,mvlist,mvraw,nullstr,sortfield,keeporphans,maxpause|}=${3|s,m,h,d,true,false|} ${4|maxopentxn,maxopenevents,keepevicted|}=${5}",
+            ""
+        ],
+        "description": "将事件分组成交易"
+    },
+    "transpose [transpose-count] <transpose-row> <transpose-column> <transpose-valueField>": {
+        "prefix": "transpose",
+        "body": [
+            "transpose row=${1:<field-list>} column=${2:<field-list>} valueField=${3:<field-list>}",
+            ""
+        ],
+        "description": "将查询的表格结果进行行列转换"
+    },
+    "typeahead <prefix_field> [size_field] [index_field]": {
+        "prefix": "typeahead",
+        "body": [
+            "typeahead prefix=\"${1:<string>}\" ${2|size,index|}=${3:5}",
+            ""
+        ],
+        "description": "返回指定前缀的字段信息。返回的最大结果数取决于为size参数指定的值。typeahead命令可以以指定索引为目标，并受时间限制"
+    },
+    "union [[ <sub-pipeline> ]] [[ <sub-pipeline> ]]": {
+        "prefix": "union",
+        "body": [
+            "union [[",
+            "       ${1}",
+            "   ]] [[",
+            "  ${2} ",
+            "]]",
+            ""
+        ],
+        "description": "同时执行多个搜索，把搜索结果合并起来。需要至少两个子查询。可以分布式执行命令的命令相当于multisearch命令，其他命令相当于append命令"
+    },
+    "unpivot [<count>] <param-options>*": {
+        "prefix": "unpivot",
+        "body": [
+            "unpivot ",
+            ""
+        ],
+        "description": "行转列操作"
+    },
+    "untable": {
+        "prefix": "untable",
+        "body": [
+            "untable",
+            ""
+        ],
+        "description": "table指令的逆操作，使用该指令可以将表格的查看方式转换到事件列表的查看方式"
+    },
+    "where <expression> | <field> <in-func>": {
+        "prefix": "where",
+        "body": [
+            "where ${1|<field> != <value>,<field> > <value> && <field> < <value>|}",
+            ""
+        ],
+        "description": "使用表达式对结果进行过滤"
+    },
+    "xpath [input=<field>] output=<field> path=<string> [default_value=<string>]": {
+        "prefix": "xpath",
+        "body": [
+            "xpath input=${1:<field>} output=${2:<field>} path=${3:<string>}",
+            ""
+        ],
+        "description": "提供对xml数据的处理和抽取"
+    }
+}

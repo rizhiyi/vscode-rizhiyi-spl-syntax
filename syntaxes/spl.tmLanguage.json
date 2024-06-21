@@ -1,0 +1,89 @@
+{
+	"fileTypes": [
+	  "rzy",
+	  "spl"
+	],
+	"name": "日志易SPL查询语言",
+	"patterns": [
+	  {
+		"comment": "内置命令",
+		"match": "(?<=(\\||\\[))([\\s]*)\\b(accum|addcoltotals|addinfo|addtotals|append|appendcols|autoregress|bucket|chart|collect|composite|correlation|dbxexec|dbxlookup|dbxoutput|dbxquery|dedup|delete|download|esma|eval|eventstats|fields|filldown|fillnull|foreach|fromes|fromkafkapy|gentimes|geostats|head|history|inputlookup|iplocation|join|jpath|kvextract|ldapfetch|ldapfilter|ldapgroup|ldapsearch|ldaptestconnection|limit|loadjob|localop|lookup|lookup2|makecontinuous|makemv|makeresults|map|movingavg|multireport|multisearch|mvcombine|mvexpand|outputlookup|parse|partition|rare|rename|replace|rest|rollingstd|save|search|sort|stats|strcat|streamstats|table|timechart|timewrap|top|transaction|transpose|typeahead|union|unpivot|untable|where|xpath)\\b(?=[\\s])",
+		"name": "support.class.rizhiyi_spl"
+	  },
+	  {
+		"comment": "Stats配套函数",
+		"match": "\\b(avg|correlation|count|covariance|date_histogram|dc|derivative|dhg|distinct|distinct_count|earliest|es|estdc|extend_stat|first|hg|histogram|kurtosis|last|latest|list|mad|max|min|pct|pct_ranks|percentile_ranks|percentiles|range_bucket|rate|rb|signify|skewness|sparkline|stddev|sum|sumsq|top|values|var)(?=\\()\\b",
+		"name": "support.function.rizhiyi_spl"
+	  },
+	  {
+		"comment": "Eval配套函数",
+		"match": "\\b(abs|exp|ln|empty|case|ceil|cidrmatch|coalesce|floor|format|formatdate|datetime_diff|if|in|isnum|isstr|len|log|pi|pow|sqrt|acos|acosh|asin|asinh|atan|atan2|atanh|cos|cosh|hypot|sin|sinh|tan|tanh|entropy|lower|match|contains|max|min|mvsum|mvavg|mvappend|mvcount|mvdedup|mvfilter|mvfind|mvindex|mvjoin|mvmap|mvdelta|mvrange|mvsort|mvszip|split|now|parsedate|printf|relative_time|round|substring|todouble|tonumber|tolong|tostring|tojson|trim|ltrim|rtrim|replace|typeof|upper|urlencode|urldecode|base64encode|base64decode|unicodeencode|unicodedecode|md5|sha1|sha256|sha512|ip2long|long2ip|cidr2long|is_valid_mac|is_valid_ip|is_valid_mask|is_valid_cidr|expand_ip_range_to_cidr|like|isnotnull|isblank|islong|isbool)\\b",
+		"name": "support.function.rizhiyi_spl"
+	  },
+	  {
+		"comment": "Macro(宏定义)",
+		"match": "(?<=\\`)[\\w]+(?=\\(|\\`)",
+		"name": "entity.name.function.rizhiyi_spl"
+	  },
+	  {
+		"comment": "数值",
+		"match": "\\b(\\d+)\\b",
+		"name": "constant.numeric.rizhiyi_spl"
+	  },
+	  {
+		"comment": "转义字符",
+		"match": "(\\\\\\\\|\\\\\\||\\\\\\*|\\\\\\=)",
+		"name": "contant.character.escape.rizhiyi_spl"
+	  },
+	  {
+		"comment": "运算符",
+		"match": "(\\|,-+\/\\*\\%)",
+		"name": "keyword.operator.rizhiyi_spl"
+	  },
+	  {
+		"comment": "语言常量",
+		"match": "(?i)\\b(as|by|OR|AND|over|where|output|outputnew)\\b|(?-i)\\b(NOT|true|false)\\b",
+		"name": "constant.language.rizhiyi_spl"
+	  },
+	  {
+		"comment": "Macro(宏定义)参数",
+		"match": "(?<=\\(|,|[^=]\\s{300})([^\\(\\)\\\",=]+)(?=\\)|,)",
+		"name": "variable.parameter.rizhiyi_spl"
+	  },
+	  {
+		"comment": "变量",
+		"match": "([\\w\\.]+)(\\[\\]|\\{\\})?([\\s]*)(?=\\=)",
+		"name": "variable.rizhiyi_spl"
+	  },
+	  {
+		"comment": "比较或赋值",
+		"match": "=><",
+		"name": "keyword.operator.rizhiyi_spl"
+	  },
+	  {
+		"begin": "(?<!\\\\)\"",
+		"end": "(?<!\\\\)\"",
+		"name": "string.quoted.double.rizhiyi_spl"
+	  },
+	  {
+		"begin": "(?<!\\\\)'",
+		"end": "(?<!\\\\)'",
+		"name": "string.quoted.single.rizhiyi_spl"
+	  },
+	  {
+		"begin": "query=\\\"",
+		"end": "(?<!\\\\)\"",
+		"name": "meta.embedded.block.sql"
+	  },
+	  {
+		"begin": "(?<!\\\\)```",
+		"end": "(?<!\\\\)```",
+		"name": "comment.block.rizhiyi_spl"
+	  },
+	  {
+		"begin": "`comment\\(",
+		"end": "\\)`",
+		"name": "comment.block.rizhiyi_spl"}
+	],
+	"scopeName": "source.rizhiyi_spl"
+  }

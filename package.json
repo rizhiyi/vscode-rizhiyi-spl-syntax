@@ -1,0 +1,101 @@
+{
+  "name": "rizhiyi-spl-extension",
+  "displayName": "Rizhiyi Search Syntax Highlighter Formatter",
+  "description": "日志易SPL语法高亮、代码提示以及格式化插件",
+  "version": "0.0.1",
+  "publisher": "rizhiyi",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Formatters"
+  ],
+  "icon": "assets/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:rizhi_spl"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "rizhiyi_spl.Prettify",
+        "title": "SPL格式化"
+      }
+    ],
+    "languages": [
+      {
+        "id": "rizhiyi_spl",
+        "aliases": [
+          "Rizhiyi-SPL",
+          "spl",
+          "SPL",
+          "rizhiyi",
+          "RIZHIYI"
+        ],
+        "extensions": [
+          ".spl",
+          ".txt",
+          ".md"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "rizhiyi_spl",
+        "scopeName": "source.rizhiyi_spl",
+        "path": "./syntaxes/spl.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.sql": "sql"
+        }
+      },
+      {
+        "scopeName": "markdown.rizhiyi_spl.codeblock",
+        "path": "./syntaxes/spl.codeblock.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.rizhiyi_spl": "rizhiyi_spl"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "rizhiyi_spl",
+        "path": "./snippets/spl.snippets.json"
+      }
+    ]
+  },
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.92.0",
+    "webpack-cli": "^5.1.4",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.4.0"
+  }
+}
