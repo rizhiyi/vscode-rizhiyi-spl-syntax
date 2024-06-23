@@ -42,7 +42,7 @@
 	  },
 	  {
 		"comment": "语言常量",
-		"match": "(?i)\\b(as|by|OR|AND|over|where|output|outputnew)\\b|(?-i)\\b(NOT|true|false)\\b",
+		"match": "(?i)\\b(as|by|OR|AND|over|where|output|outputnew|appname|tag|ip)\\b|(?-i)\\b(NOT|true|false)\\b",
 		"name": "constant.language.rizhiyi_spl"
 	  },
 	  {

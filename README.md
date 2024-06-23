@@ -29,3 +29,11 @@
 2. 点击齿轮图标，在点击`SPL格式化`左侧符号输入快捷键回车即可绑定
 
    ![image-20240621222240303](https://s3.yaourt.cn/img/windows/2024/06/21/202406212222369.png)
+
+# 离线安裝
+
+1. 请在此处下载最新的包：https://github.com/rizhiyi/vscode-rizhiyi-spl-syntax/releases/tag/Latest
+
+2. 按照下图方式操作即可
+
+   ![image-20240623093219986](https://s3.yaourt.cn/img/windows/2024/06/23/image-20240623093219986.png)

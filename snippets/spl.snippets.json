@@ -15,6 +15,22 @@
         ],
         "description": "指定时间范围"
     },
+    "appname": {
+        "prefix": ["appname"],
+        "body": [
+            "appname:${0}",
+            ""
+        ],
+        "description": "指定appname"
+    },
+    "tag": {
+        "prefix": ["tag"],
+        "body": [
+            "tag:${0}",
+            ""
+        ],
+        "description": "指定tag"
+    },
     "accum <field> [as <new-field>]": {
         "prefix": "accum",
         "body": [
@@ -78,7 +94,7 @@
     "bucket <field> <bucketing-option> [as <field>]": {
         "prefix": "bucket",
         "body": [
-            "bucket ${1:<field>} ${2|span,ranges,timeranges|}=${3|s,m,h,d,w,(<time>\\,<time>),(<number>\\,<number>)|} as ${4:<new-field>}",
+            "bucket ${1:<field>} ${2|span,ranges,timeranges|}=${3|1s,1m,1h,1d,1w,(<time>\\,<time>),(<number>\\,<number>)|} as ${4:<new-field>}",
             ""
         ],
         "description": "将字段中连续的数字值，放入离散集的数据桶中，该变量可用于后续的stats等命令的分组字段中"
@@ -248,7 +264,7 @@
     "gentimes <start> <param-options>*": {
         "prefix": "gentimes",
         "body": [
-            "gentimes start=${1} end=${2} ${3|increment,humantime,timezone|}=${4|s,m,h,d,true,false,+08:00|} ",
+            "gentimes start=${1} end=${2} ${3|increment,humantime,timezone|}=${4|1s,1m,1h,1d,true,false,+08:00|} ",
             ""
         ],
         "description": "可以生成指定范围的时间戳数据"
@@ -402,7 +418,7 @@
     "makecontinuous [<field>] <param-options>*": {
         "prefix": "makecontinuous",
         "body": [
-            "makecontinuous ${1:<field>} ${2|span,start,end|}=${3|s,m,h,d,w|}",
+            "makecontinuous ${1:<field>} ${2|span,start,end|}=${3|1s,1m,1h,1d,1w|}",
             ""
         ],
         "description": "在一定数值或时间范围内，根据给定的区间大小，对原始数据升序处理，并补充不连续的区间，区间的划分采用向前圆整的方式"
@@ -613,7 +629,7 @@
     "timewrap <timespan> param-options*": {
         "prefix": "timewrap",
         "body": [
-            "timewrap ${1:<int>}${2|s,m,h,d,w,M,y|} ${3|align,series,timeformat,timefield|}=${4|now,end,relative,exact,short|}",
+            "timewrap ${1:<int>}${2|1s,1m,1h,1d,1w,1M,1y|} ${3|align,series,timeformat,timefield|}=${4|now,end,relative,exact,short|}",
             ""
         ],
         "description": "对timechart命令的结果进⾏显⽰或者折叠，可以使⽤timewrap命令实现指定时间周期的数据的⽐较，⽐如按天或者按⽉"
@@ -629,7 +645,7 @@
     "transaction <field-list> <txn-definition-opt>* <memcontrol-opt>* <trans-states>?": {
         "prefix": "transaction",
         "body": [
-            "transaction ${1:<field-list>} ${2|maxspan,maxevents,startswith,endswith,contains,timeshift,keepopentxn,mvlist,mvraw,nullstr,sortfield,keeporphans,maxpause|}=${3|s,m,h,d,true,false|} ${4|maxopentxn,maxopenevents,keepevicted|}=${5}",
+            "transaction ${1:<field-list>} ${2|maxspan,maxevents,startswith,endswith,contains,timeshift,keepopentxn,mvlist,mvraw,nullstr,sortfield,keeporphans,maxpause|}=${3|1s,1m,1h,1d,true,false|} ${4|maxopentxn,maxopenevents,keepevicted|}=${5}",
             ""
         ],
         "description": "将事件分组成交易"
