@@ -1,0 +1,1339 @@
+[
+    {
+        "Command_Name": "search",
+        "Description": "search命令的query参数描述对原始日志的搜索条件，在第一个管道前边时从索引取数据，不需要加命令名字，在管道之后位置相当于where",
+        "Parameters": {
+            "Optional": {
+                "index": "语法：\\<string\\>  \n描述：指定所需搜索的索引，目前支持schedule, yotta，默认为yotta  \n示例：index=schedule",
+                "starttime": "语法：\\<time-modifier\\>  \n描述：格式请参考时间修饰符一节，表示搜索的时间区间的开始，包括该时间  \n示例：starttime=2018-09-01",
+                "endtime": "语法：\\<time-modifier\\>  \n描述：格式请参考时间修饰符一节，表示搜索的时间区间的结束，不包括该时间  \n示例：endtime=2018-09-01  \n  \nNOTE：如果query中指定了starttime和endtime，则使用该时间区间，忽略页面中指定的时间区间。",
+                "now": "语法：\\<time-modifier\\>  \n描述：格式请参考时间修饰符一节，表示搜索的时间区间的结束，不包括该时间  \n示例：now=2018-09-01  \n  \nNOTE：如果指定了now，并且starttime和endtime中有相对时间，则starttime和endtime的绝对时间是基于now来计算的，如果now是相对时间，则now是先基于当前时间计算出now的绝对时间，然后基于now的绝对时间再计算出starttime以及endtime。",
+                "query-term": "语法：[\\<field\\>:]\\<term\\>  \n描述：field部分为可选，如果不写field，则默认field为raw_message，支持通配符",
+                "term": "语法：\\<pharse-term\\> | \\<wild-term\\> | \\<regex-term\\> | \\<range\\> | \\<simple-term\\>  \n描述: 指定某个字段中的查询条件，支持通配符，正则表达式，range，短语查询  \n参数:  \n`phrase-term`-->语法: \"\\<string\\>\", 描述: 放在双引号内的查询表示短语查询, 示例: \"http://rizhiyi.com/\"  \n  \n`wild-term`-->示例: qu?ck*, 描述: 通配符查询，查询中的?表示匹配单个字符，*表示匹配多个字符, NOTE:这里不支持指定标点符号及特殊字符的匹配，例如qu-*  \n  \n`regex-term`-->语法:/\\<string\\>/, 描述: 正则表示式, 示例: name: /joh?n(ath[oa]n)/  \n  \n`range`-->语法: ( [ | { ) \\<value\\> TO \\<value\\> (} | ]), 描述: 使用中括号和大括号来描述一个range，中括号表示包含，大括号表示不包含，\\<value\\>可以是数值或者字符串，也可以使用\\>=这种写法, 示例:  \n1. count值在1到5之间，包括1和5。其写法为：count: [1 TO 5] 或者 count: \\>=1 AND count: \\<=5  \n2. count值大于等于10。其写法为：count: [10 TO *] 或者 count: \\>= 10  \n3. 年龄小于10。其写法为：age: \\<10  \n4. 年龄小于等于10。其写法为：age: \\<= 10  \n5. 年龄大于10。其写法为：age: \\>10  \n  \n`simple-term`-->语法: string, 描述: 不包含在双引号中的字符串，保留字符需要转义"
+            },
+            "Required": {}
+        },
+        "Related commands": "addcoltotals, stats",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "[index=\\<index\\>] [starttime=\\<time-modifier\\>] [endtime=\\<time-modifier\\>] [now=\\<time-modifier\\>] \\<query\\>",
+        "Example": "`... | search appname:apache`"
+    },
+    {
+        "Command_Name": "multisearch",
+        "Description": "同时执行多个搜索，把搜索结果合并起来。需要至少两个子查询",
+        "Parameters": {
+            "Optional": {},
+            "Required": {
+                "subsearch": "语法: \\<sub-pipeline\\>  \n描述: 子查询，支持管道分隔的分布式流式命令"
+            }
+        },
+        "Related commands": "append, join",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "multisearch [[ \\<subsearch\\> ]] [[ \\<subsearch\\> ]]...",
+        "Example": "`| multisearch [[ _index:yotta appname:apache | eval clientip=apache.clientip ]] [[ _index:metric appname:json | eval clientip=json.sourceip  ]]`"
+    },
+    {
+        "Command_Name": "addinfo",
+        "Description": "向每个事件添加包含有关搜索的全局通用信息的字段，如下表所示：  \n  \t字段名\t\t含义  \ninfo_min_time\t搜索时间范围的起始时间  \ninfo_max_time\t搜索时间范围的结束时间  \n\tinfo_sid\t事件所属搜索任务的sid  \n\tinfo_search_time\t事件所属搜索任务的运行时间",
+        "Parameters": {
+            "Optional": {},
+            "Required": {}
+        },
+        "Related commands": "search",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "addinfo",
+        "Example": "`... | limit 1 | addinfo`"
+    },
+    {
+        "Command_Name": "append",
+        "Description": "append命令允许通过将子管道命令的结果附加在主管道之后，达到合并两个管道结果的目的",
+        "Parameters": {
+            "Required": {
+                "sub-pipeline": "语法: \\<结果的列表\\>  \n描述: 子查询 SPL 语句"
+            },
+            "Optional": {}
+        },
+        "Related commands": "appendcols, join",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "append \\<sub-pipeline\\>",
+        "Example": "`starttime=\"-3d/d\" endtime=\"-2d/d\" * | stats avg(apache.resp_len) | eval day=\"the day before yesterday\" | append [[ starttime=\"-1d/d\" endtime=\"now/d\" * | stats avg(apache.resp_len) | eval day=\"yesterday\" ]]`"
+    },
+    {
+        "Command_Name": "union",
+        "Description": "同时执行多个搜索，把搜索结果合并起来。需要至少两个子查询。可以分布式执行命令的命令相当于multisearch命令，其他命令相当于append命令",
+        "Parameters": {
+            "Required": {
+                "sub-pipeline": "语法: \\<sub-pipe\\>  \n描述: 子查询，支持管道分隔的命令"
+            },
+            "Optional": {}
+        },
+        "Related commands": "append, appendcols, join",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "union [[ \\<sub-pipeline\\> ]] [[ \\<sub-pipeline\\> ]]...",
+        "Example": "示例1: 同时搜索yotta索引里appname是apache的日志，和metric索引里appname是json的日志，并提取出来同名的clientip字段  \n| union [[ `_index:yotta appname:apache | eval clientip=apache.clientip ]] [[ _index:metric appname:json | eval clientip=json.sourceip  ]]`  \n  \n示例2: 分别统计yotta索引和metric索引里的结果数  \n`| union [[ _index:yotta | stats count() | eval index=\"yotta\" ]] [[ _index:metric | stats count() | eval index=\"metric\" ]]`"
+    },
+    {
+        "Command_Name": "appendcols",
+        "Description": "添加一个子搜索，并将子搜索的结果按顺序合并到父搜索上",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "param-options": "语法: \\<override\\> | \\<maxout\\>  \n参数:  \noverride-->语法: override = \\<bool\\>; 描述: 子搜索中的同名字段是否覆盖父搜索的字段值，默认为false  \nmaxout-->语法: maxout = \\<int\\>; 描述: 子搜索的最大返回条数，默认为50000  \nNOTE: 如上的maxout参数值有上限值，默认为200000；对应的配置项为 appendcols.max_out_limit",
+                "subsearch": "语法: \\<sub-pipeline\\>  \n描述: 子查询语句"
+            }
+        },
+        "Related commands": "append, join",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "appendcols param-options* [[ subsearch ]]",
+        "Example": "示例: 查询2019-12-04日至2019-12-06日的结果并且将该时间范围统计出来的count数追加到第一行结果中  \n`* | appendcols override=false maxout=10 [[ * | stats count() as cnt]]`"
+    },
+    {
+        "Command_Name": "autoregress",
+        "Description": "将当前事件之前的事件中的字段值拷贝到当前事件，该字段可以用于后续的表达式计算等",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述:  事件中需要拷贝的字段，大多情况下是数值字段。",
+                "p": "语法:  p=\\<number\\>  \n描述: 表示当前事件之前的那些事件的字段将被拷贝到当前事件，可以指定为单个数字或者数字的范围，如果指定为单个数字，比如p=3，当前事件之前的第三条事件的字段将被拷贝，如果指定为数字的范围，比如p=2-4，则表示当前事件之前的第四条到第二条事件都将被拷贝到当前事件，并采用一定的命名规则命名。"
+            },
+            "Optional": {
+                "as-field": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 仅当p指定为单个数字的时候，as-field表示目标的字段名，否则目标字段名为\\<field\\>_p\\<num\\>这种形式，比如p=2-3，则产生两个新的字段名: \\<field\\>_p2, \\<field\\>_p3"
+            }
+        },
+        "Related commands": "accum, autoregress, streamstats",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "autoregress \\<field\\>[ as \\<as-field\\> ] p=\\<num\\>|\\<num\\>-\\<num\\>",
+        "Example": "示例: 按小时统计事件数，并计算出当前小时和上个小时的事件数变化比率  \n`* | bucket timestamp span=1h as ts | stats count() as count_ by ts | autoregress count_ as last_count  p=1 |eval a=(last_count - count_)/count_ | eval change_rate = format(\"%.3f%%\", (last_count - count_)*100/count_)`"
+    },
+    {
+        "Command_Name": "bucket",
+        "Description": "将字段中连续的数字值，放入离散集的数据桶中，该变量可用于后续的stats等命令的分组字段中",
+        "Parameters": {
+            "Required": {
+                "bucket-option": "语法: span | ranges | timeranges  \n描述: 离散化选项  \n参数:   \n`span`-->语法: span = \\<span-length\\>, 描述:使用基于时间或者绝对数值的长度设置每个数据桶的大小, span-length可选参数: s | m | h | d | w(时间单位，分别表示秒，分钟，小时，天，周)   \n  \n`timeranges`-->语法: timeranges = \\<time-ranges\\>, 描述: 使用时间修饰符指定一组时间的区间，ranges也通过左闭右开的区间  \n  \n`ranges`-->语法: ranges = \\<number-ranges\\>, 描述: 通过数值对来指定一组range，MIN表示最小值，MAX为最大值，均为可选，所 有的range均为左闭右开的区间，形式化的描述为[\\<number\\>, \\<number\\>]，包括第一个值，但小于第二个值"
+            },
+            "Optional": {
+                "field": "语法: \\<field\\>  \n描述: 指定一个字段名称, 如果未指定，则使用原始字段名称"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "bucket \\<field\\> \\<bucketing-option\\> [as \\<field\\>]",
+        "Example": "示例1: 返回每1小时跨度内的每个hostname的apache.resp_len的平均值  \n`logtype:apache | bucket timestamp span=1h as ts | stats avg(apache.resp_len) by hostname, ts | eval ts_human = formatdate(ts)`  \n  \n示例2: 返回apache.status为100-200， 200-400， 400以上的apache.status的个数  \n`logtype:apache | bucket apache.status ranges=((100, 200), (200, 400), (400,)) as rs | stats count(apache.status) by rs`"
+    },
+    {
+        "Command_Name": "composite",
+        "Description": "优化版的stats，一定情况下可减少部分内存使用，使用方法完全相同。与stats的性能对比：无byField时，与stats相同；单byField时，增加少量时间消耗；多byField时，增加少量时间消耗，减少部分内存使用。",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "field": "语法: \\<field\\> | \\<single-quoted-string\\>  \n描述: 每个stats_function都可以定义输出字段名，否则对后续的计算不可见",
+                "stats_function": "语法: avg | min | max | sun | count | distinct_count | first | last | earliest | latest | rate | exact_dc | sumsq | var | stddev | mad  \n描述: 与stats命令结合的函数",
+                "field-list": "语法: \\<field\\> | \\<single-quoted-string\\>  \n描述: 分组字段，所有的stats_func将在分组内统计"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "composite \\<stats_function\\> [as \\<field\\>] [by \\<field-list\\>]",
+        "Example": "示例1: 统计state和pid的组合的事件数量  \n`logtype:json | composite count() by json.state, json.pid`"
+    },
+    {
+        "Command_Name": "chart",
+        "Description": "按照over字段进行分桶后的统计行为",
+        "Parameters": {
+            "Required": {
+                "stats-single-value-func-as": "语法: avg | min | max | sun | count | distinct_count | first | last | earliest | latest | rate | exact_dc | sumsq | var | stddev | mad  \n描述: 用于统计的函数"
+            },
+            "Optional": {
+                "chart-params": "语法: [sep=\\<string\\>] | [format=\\<string\\>] | [cont=\\<bool\\>] | [limit=\\<int\\>] | [rendertype=\\<string\\>]  \n参数:   \n`sep`-->语法: sep=\\<string\\>, 描述: 表示by field和统计字段组合时的分隔符，默认值为\":\"。这里默认的顺序为统计字段+分隔符+byfield，如果想改变顺序，请使用下面format参数  \n  \n`format`-->语法: format=\\<string\\>, 描述: 表示规定字段的组合分隔符和组合顺序，默认值为\"$AGG:$VAL\"。 在这个字段中用$AGG表示统计字段，$VAL表示by field的值，所以一般的写法是format=\"$AGG$VAL\"，此时为字段分隔符，如果想改变组合顺序，可将$VAL和$AGG的顺序反过来，分隔符仍需置于中间位置  \n  \n`cont`-->语法: cont=\\<bool\\>, 描述: 表示是否将不连续的时间桶补充为连续，默认为false。因为将时间按照一定的时间间隔进行分桶时，有些桶内可能没有日志或者时间落入桶，此时桶内的所有统计值都为0。默认情况下会将这些桶所在的行去掉，如果置为true则会将这些行补充到结果中。  \n  \n`limit`-->语法: limit=\\<int\\>, 描述: 表示限制使用by field值的个数，默认值为无穷大。即若语句中有 max count avg三种统计函数，by field有10种值，那么在不限制limit的情况下将有3*10+1个字段，即结果中有31列。若limit=5，那么将只取byfield的前5个值与统计字段进行组合，结果就只有3*5+1=16列，结果中也将只有这些列的值  \n  \n`rendertype`-->语法: rendertype=\\<string\\>, 描述: 可选值：pie(环形图)，rose(玫瑰图)，bar(条形图)，sunburst(旭日图)，sankey(桑基图)，force(力图)，chord(和弦图)，heatmap(热力地图)，wordcloud(词云图)。维度图包含：pie，rose，bar。可同时有over和by字段，或只有任一字段。当同时有两个字段时，会将over的字段与by平铺的字段拼接绘图展示（sunburst除外，只能有两个字段，直接层级展示）；关系图包含：sankey，force，chord。必须同时有over和by字段，over为来源字段，by为目的字段；其他：heatmap，wordcloud。只能有over或by其中一个字段，做切分使用",
+                "chart-over-params": "语法: [bins=\\<int\\>] | [span=\\<SPAN\\>] | [startindex=\\<int\\>] | [endindex=\\<int\\>]  \n参数  \n`span-str`-->语法: span=\\<string\\>, 描述: 表示分桶间隔，格式为数字或数字+单位，与bucket指令span参数的格式相同  \n  \n`bins`-->语法: bins=\\<int\\>, 描述: 表示最多有多少个桶，默认值100。  \n  \n`startindex`-->语法: startindex=\\<int\\>, 描述: 默认值为0，表示从所有桶中的第几个桶开始取，前面的桶对应的行将被舍弃  \n  \n`endindex`-->语法: endindex=\\<int\\>, 描述: 默认值为无穷大，表示取到所有桶中的第几个桶，后面的桶对应的行将被舍弃",
+                "chart-by-params": "语法: [bins=\\<int\\>] | [span=\\<SPAN\\>] | [startindex=\\<int\\>] | [endindex=\\<int\\>]  \n参数:  \n`bins`-->语法: bins=\\<int\\>, 描述: 表示最多有多少个桶，默认值100。  \n  \n`span`-->语法: span=\\<string\\>, 描述: 表示分桶间隔，格式为数字或数字+单位，与bucket指令span参数的格式相同  \n  \n`startindex`-->语法: startindex=\\<int\\>, 描述: 默认值为0，表示从所有桶中的第几个桶开始取，前面的桶对应的行将被舍弃  \n  \n`endindex`-->语法: endindex=\\<int\\>, 描述: 默认值为无穷大，表示取到所有桶中的第几个桶，后面的桶对应的行将被舍弃  \n  \n`NOTE`: 由于chart支持按照多个字段进行分组,所以这里会与stats命令中的by字段有同样的限制，详情见stats命令的NOTE中的group.size以及stats.oneby.group_size配置项"
+            }
+        },
+        "Related commands": "timechart",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "chart [\\<chart-params\\>]* \\<stats-single-value-func\\> [\\<stats-single-value-func\\>]* [over \\<field\\> \\<chart-over-params\\>*] [by \\<field\\> \\<chart-by-params\\>*]",
+        "Example": "示例1: 字段分割符为**，组合顺序为byfield值+分隔符+统计字段，限制byfield值为5个进行组合，桶最大个数为10个，分桶为1小时一个，按照agent_send_timestamp进行分组后的结果，collector_recv_timestamp分组间隔为50，最多分为20个桶，取第四到第六个桶值  \n`* | chart sep=\",\" format=\"$VAL**$AGG\" limit=5 cont=true count() over agent_send_timestamp bins=10 span=\"1h\" by collector_recv_timestamp span=\"50\" bins=20 startindex=4 endindex=7`  \n  \n示例2: 字段分割符为**，组合顺序为byfield值+分隔符+统计字段，限制byfield值为5个进行组合，按照apache.status进行分组后的结果统计apache.x_forward的次数  \n`* | chart sep=\",\" format=\"$VAL**$AGG\" limit=5 cont=false rendertype=\"pie\" count(apache.x_forward) over apache.status`"
+    },
+    {
+        "Command_Name": "collect",
+        "Description": "将查询的结果写到索引，需要有运行collect命令的权限",
+        "Parameters": {
+            "Required": {
+                "index": "语法: index=\\<field\\>|\\<double-quoted-string\\>  \n描述: 要写入的索引名。索引在\"路由配置\"中查看和添加。索引必须存在，当前用户必须有索引写权限"
+            },
+            "Optional": {
+                "marker": "语法: marker=\\<key\\>=\\<value\\>, \\<key\\>=\\<value\\> ...  \n描述: 写入结果中追加对键值对。kv格式的键值对，kv键值对，k和v用等号(=)分隔，kv对儿之间用逗号(,)分隔",
+                "testmode": "语法: testmode=\\<bool\\>  \n描述: 是否是用test模式运行，test模式不写入索引，默认为false"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "collect index=\\<field\\> [marker=\"\\<key\\>=\\<value\\>, \\<key\\>=\\<value\\> ...\"] [testmode=\\<bool\\>]",
+        "Example": "示例: 把搜索的结果写入test索引，修改appname为test，tag为tag1  \n`*|collect index=test marker=\"appname=\\\"test\\\", tag=\\\"tag1\\\"\"`"
+    },
+    {
+        "Command_Name": "correlation",
+        "Description": "按照bucket指定的分桶方式，计算搜索结果如arr_all=[100,3213,421]和每个字段对应的每个值的统计值如arr_k1_v1=[31,1030,123]，再根据pearson算法计算两个数组的相关性，保留每个字段的相关性最高的值，并给出范围在[-1, 1]之间的相关性得分",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "bucket-field": "语法: bucket_field = \\<field\\>  \n描述: 参数值为使用bucket命令的range参数指定分桶信息的字段",
+                "excludeone": "语法: excludeone = \\<boolean\\>  \n描述: 默认值为true。当background dataset与命中数据在指定的分桶上的结果相同且唯一时，相关性结果为1，指定该参数为true时，过滤这样的结果。例如，`status:error`为bg dataset，`status:error appname:SPL`, 如果appname只有一个值为value时，该结果就可以被过滤"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "correlation \\<bucket-field\\>",
+        "Example": "示例: 按照bucket指定的分桶，查询与状态为error的相关性高的字段与对应的字段值  \n`error| where !isnull(json.duration)| bucket json.duration ranges=((0,500),(500,1000),(1000,20000),(20000,40000),(40000,60000),(60000,80000),(80000,100000),(100000,200000),(200000,400000),(400000,600000),(600000,800000),(800000,1000000),(1000000,2000000),(2000000,4000000),(4000000,6000000),(6000000,)) as rs| correlation bucket_field=rs| sort by correlation`"
+    },
+    {
+        "Command_Name": "dbxexec",
+        "Description": "是一个可以使用sql来更新/删除远程数据的数据",
+        "Parameters": {
+            "Required": {
+                "connection": "语法: connection = \\<string\\>  \n描述: 指的是数据源名称(该数据源是配置页面配置好的)",
+                "query": "语法: query = \\<string\\>  \n描述: 使用的sql语句或者其他数据库支持的更新/删除语句"
+            },
+            "Optional": {
+                "param-options": "语法: \\<batchsize\\> | \\<timeout\\>  \n描述: 可选参数选项  \n参数:  \n`batchsize`-->语法: batchsize = \\<int\\>, 描述: 查询时分batch取数据，每个batch的大小，默认为100  \n  \n`timeout`-->语法: timeout = \\<int\\>, 描述: query查询超时时间(单位为秒)，默认为600",
+                "params": "语法: params = \\<field\\>[,\\<field\\>]*  \n描述: 用于query中替换的字段值"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "dbxexec \\<connection\\> \\<param-options\\>* \\<query\\> [\\<params\\>]",
+        "Example": "示例: 更新connection配置为110test的数据源对应的dbxexec_test表中当id为前序字段值的数据为前序count字段值  \n`dbxexec connection=\"110test\" query=\"update dbxexec_test set count=? where id=?\" params=count,id`"
+    },
+    {
+        "Command_Name": "dbxlookup",
+        "Description": "类似sql的连接，将来自远程数据库表的结果和子管道的结果连接在一起",
+        "Parameters": {
+            "Required": {
+                "preset-lookup-option": "语法: lookup = \\<string\\>  \n描述:  指的是已配置的lookup名称(该名称是dbxlookup配置页面配置好的)"
+            },
+            "Optional": {
+                "chunksize": "语法: chunksize = \\<int\\>  \n描述: 指定分批查询数据的条数batch_size",
+                "lookup-option": "语法: \\<lookup-field-list\\> \\<connection\\> \\<query\\> ON \\<join-field-list\\>  \n参数:  \n`lookup-field-list`-->语法: \\<field\\> [as \\<field\\>] (, \\<field\\> [as \\<field\\>])*, 描述: 指定将远程数据库中的数据保留在搜索结果中的字段列表  \n  \n`connection`-->语法: connection = \\<string\\>, 描述: 指的是数据源名称(该数据源是配置页面配置好的)  \n  \n`query`-->语法: query = \\<string\\>, 描述: 使用的sql语句或者其他数据库支持的查询语句  \n  \n`join-field-list`-->语法: \\<field\\> = \\<field\\> (, \\<field\\> = \\<field\\>)*, 描述: 等号左边的field表示主结果中的字段，等号右边的field为远程数据库搜索结果中的字"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "dbxlookup [\\<chunksize\\>] (\\<preset-lookup-option\\> | \\<lookup-option\\>)",
+        "Example": "示例: 将模拟的数据与已配置lookup名称为gc_test_vertica的数据连接在一起  \n`|makeresults count=1 | eval hostname=\"TEST\" | dbxlookup lookup=\"gc_test_vertica\"`"
+    },
+    {
+        "Command_Name": "dbxoutput",
+        "Description": "将当前搜索的数据按照已配置的dbxoutput名称写出到远程数据库",
+        "Parameters": {
+            "Required": {
+                "output": "语法: output=\\<string\\>  \n描述: 指的是output名称(该名称是dbxoutput配置页面配置好的)"
+            },
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "dbxoutput \\<output\\>",
+        "Example": "示例: 将模拟数据输出到output配置为output1对应的远程数据库中的指定字段中。  \n`|makeresults count=1 | eval appname=\"ccccc\" |eval id=1002 |dbxoutput output=\"output1\"`"
+    },
+    {
+        "Command_Name": "dbxquery",
+        "Description": "是一个可以使用sql来查远程数据库的数据并作为spl的查询语句的命令（不支持跨库联查，如果要使用两个库的话可以使用append，join等）",
+        "Parameters": {
+            "Required": {
+                "connection": "语法: connection=\\<string\\>  \n描述: 指的是数据源名称(该数据源是配置页面配置好的)",
+                "dbx-query-procedure": "语法: \\<query\\> | \\<procedure\\>  \n参数:  \n`query`-->语法: query = \\<string\\>, 描述: 使用的sql语句或者其他数据库支持的查询语句  \n  \n`procedure`-->语法: procedure = \\<string\\>, 描述: 指的是使用存储过程，支持param"
+            },
+            "Optional": {
+                "dbx-params": "语法: \\<fetchsize\\> | \\<maxrows\\> | \\<timeout\\> | \\<shortnames\\>  \n参数:  \n`fetchsize`-->语法: fetchsize = \\<int\\>, 描述: 查询时分batch取数据，每个batch的大小，默认为10000  \n  \n`maxrows`-->语法: maxrows = \\<int\\>, 描述: 该查询语句所能查到的所有数据的条数限制，默认为100000  \n  \n`timeout`-->语法: timeout = \\<int\\>, 描述: query查询超时时间(单位为秒)，默认为600  \n  \n`shortnames`-->语法:shortnames = \\<bool\\>, 描述: 是否只显示名称，如果为false则会拼上字段的类型，默认为true",
+                "params": "语法: \\<string\\>[,\\<string\\>]*  \n描述: 用于存储过程或者query中替换的变量值"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "dbxquery connection \\<dbx-params\\>* \\<dbx-query-procedure\\> [ params=\\<string\\>[,\\<string\\>]* ]",
+        "Example": "示例: 搜索connection配置为179test的数据源对应的test表中的所有数据  \n`| dbxquery connection=\"179test\" query=\"select * from test\"`"
+    },
+    {
+        "Command_Name": "dedup",
+        "Description": "该命令可以对搜索结果中指定字段值的重复情况进行去重和过滤",
+        "Parameters": {
+            "Required": {
+                "field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 一列字段名称，表明要对结果中的哪些字段进行dedup操作和判定"
+            },
+            "Optional": {
+                "dedup-count": "语法: \\<int\\>  \n描述: 此参数指定保留前N条重复出现的日志或结果 默认值：1，默认只保留重复出现的第一条日志",
+                "dedup-param": "语法: \\<keepevents = \\<bool\\>\\> | \\<keepempty = \\<bool\\>\\>  \n描述: keepevents:是否保留重复事件,keepempty:是否保留空事件  \n参数:  \n`keepevents`-->语法: \\<bool\\>, 描述: 若为true，则会保留所有重复出现的日志，但会移除重复值（除去第一条出现的日志） 默认值：false，重复出现的日志将会被整体移除  \n  \n`keepempty`-->语法: \\<bool\\>, 描述: 若为true，则会保留指定field name的值为空的日志 默认值：false，若指定的一个或多个field name值为空，那么该条日志将会被移除"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "dedup [\\<dedup-count\\>] \\<field-list\\> [\\<dedup-param\\>]*",
+        "Example": "示例: 列出每个城市不同的apache.status的各前三条结果  \n`* | table apache.status, apache.geo.city | dedup 3 apache.status, apache.geo.city`"
+    },
+    {
+        "Command_Name": "delete",
+        "Description": "该命令可以对搜索结果中query部分命中的原始日志进行删除  \n  \nNOTE: delete仅对query命中的原始日志部分进行删除，且删除有一定延迟",
+        "Parameters": {
+            "Required": {},
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "delete",
+        "Example": "示例: 列出tag为lytest中的原始日志  \n`tag:lytest | delete`"
+    },
+    {
+        "Command_Name": "download",
+        "Description": "该命令可以download命令之前产生的结果下载到外部文件",
+        "Parameters": {
+            "Required": {
+                "filename": "语法: \\<string\\>  \n描述: 指定下载文件的名称，无须带后缀"
+            },
+            "Optional": {
+                "download-params": "语法: [fileformat=\\<string\\>] [maxsize=\\<string\\>] [charset=\\<string\\>] [maxevents=\\<int\\>]  \n描述：:  \n`fileformat`支持\"csv\"、\"json\"、\"txt\"，默认为\"txt\"  \n  \n`maxsize`可写为整型，或者带单位的字符串，支持的单位有：g、m、k、b，默认值见配置项 download.max_file_size  \n  \ncharset支持\"UTF-8\"和\"GBK\"，默认为\"UTF-8\"  \n  \nmaxevents默认值见配置项 download.max_events"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "download [filename=\\<string\\>] [download-params]*",
+        "Example": "示例: 将原始日志中仅保留appname和hostname两个字段的结果下载为aatest.json的结果文件  \n`* | table appname, hostname | download filename=\"aatest\" fileformat=\"json\"`"
+    },
+    {
+        "Command_Name": "esma",
+        "Description": "该命令可以对某一个字段的未来值进行预测",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<string\\>  \n描述: 用于表示进行预测的字段"
+            },
+            "Optional": {
+                "as-field-clause": "语法: as \\<field\\> | \\<single-quoted-string\\>  \n描述: 表示将预测结果字段重新命名，默认为 _predict_\\<field\\>",
+                "param-options": "语法: \\<timefield\\> | \\<period\\> | \\<futurecount\\>  \n描述: 参数选项  \n参数:  \n`timefield`-->语法:timefield = \\<field\\>, 描述: 时间参数字段。  \n  \n`period`-->语法: period = \\<int\\>, 描述: 表示数据中的时间周期长度，如果没有指定，我们将自己进行计算  \n  \n`futurecount`-->语法: futurecount = \\<int\\>, 描述: 表示对未来进行预测的个数，默认为5，最大值为100"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "esma \\<field\\> [\\<as-field-clause\\>] \\<param-options\\>*",
+        "Example": "示例: 统计过去一年的每天的平均延迟（我们将周期设置为7天），从而推测接下来一个月的网络延迟  \n`* | bucket timestamp span=1d as ts | stats avg(network.latency) as latency by ts | esma latency timefield=ts period=7 futurecount=30`"
+    },
+    {
+        "Command_Name": "eval",
+        "Description": "计算表达式并将生成的值放入到新的字段中",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 生成的目标字段名称，如果字段已存在字段的值将被覆盖。",
+                "expression": "语法: \\<string\\> | \\<field\\> | \\<operator\\> | \\<expression_function\\>  \n描述: 代表目标字段值的值、变量、运算符以及函数的组合。"
+            },
+            "Optional": {
+                "expression_function": "描述: spl本身已经支持了部分函数，请参看eval函数",
+                "operator": "描述: 运算符按照优先级自低到高排序:  \n1. ||（逻辑或）二元操作符，操作数必须是布尔类型  \n  \n2. &&（逻辑与）二元操作符，操作数必须是布尔类型  \n  \n3. !=（不等于）==（等于）  \n  \n4. \\>=，\\>，\\<=, \\<  \n  \n5. +，- 算术加减，支持数值类型，+另支持字符串  \n  \n6. *，/，% 算术乘，除，余，乘除支持数值类型"
+            }
+        },
+        "Related commands": "where",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "eval \\<field\\>=\\<expression\\> [, \\<field\\>=\\<expression\\>]*",
+        "Example": "示例1: 对于web日志，将根据响应时间获取short, middle, long三个分类值  \n`logtype:apache | eval length=case(apache.resp_len \\< 1500, \"short\", apache.resp_len \\> 2000, \"long\", default, \"middle\")`  \n  \n示例2： 对创建出的一条数据添加tag和appname字段  \n`| makeresults count=1 | eval tag=\"tag1\",appname=\"app1\"`"
+    },
+    {
+        "Command_Name": "eventstats",
+        "Description": "提供统计信息，可以选择字段进行分组，并且将按照当前行所属于的分组的统计结果作为新的字段值添加在本行  \n  \nNOTE: eventstats保留的事件数的上限对应的配置项为eventstats.event_size",
+        "Parameters": {
+            "Required": {
+                "stats-func-as": "语法: avg | min | max | sun | count | distinct_count | first | last | earliest | latest | rate | exact_dc | sumsq | var | stddev | list | values | top | es | dhg | hg | pct | pct_ranks | rb | sparkline | mad  \n描述: 与stats命令结合的函数，请参考[#与stats有关的函数]"
+            },
+            "Optional": {
+                "field-list": "语法: \\<field\\>[,\\<field\\>]*  \n描述: 要保留的字段以逗号或者空格分割的字段列表"
+            }
+        },
+        "Related commands": "stats",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "eventstats (\\<stats-function\\> [as \\<field\\>])+ [by \\<field-list\\>]",
+        "Example": "示例: 搜索所有数据并且按照数据logtype计算count值并且根据logtype给每行添加上count()字段  \n`* | eventstats count() by logtype`"
+    },
+    {
+        "Command_Name": "fields",
+        "Description": "通过操作符保留或排除结果中的系列字段。",
+        "Parameters": {
+            "Required": {
+                "field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 要保留或排除的字段以逗号或者空格分割的字段列表，支持通配符"
+            },
+            "Optional": {
+                "operator": "语法: + | -  \n描述: +是保留，-是排除，默认为+。  \n注意: 对字段列表的操作是一致的，都为保留或都为排除"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "fields [\\<operator\\>] \\<field-list\\>",
+        "Example": "示例1: 仅保留appname和hostname字段  \n`logtype:apache | stats count() by appname,hostname | fields appname, hostname`  \n  \n示例2: 仅保留以json.e开始的字段  \n`* | stats count() by json.activated,json.id,json.excess_action,json.excess_times_limit | fields + json.e*`  \n  \n示例3: 排除appname和hostname字段  \n`* | fields - appname, hostname`"
+    },
+    {
+        "Command_Name": "filldown",
+        "Description": "将某些字段的null值用上一个最近的非null值进行填充，支持通配符",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "space-or-comma-field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<field\\> \\<field\\>*  \n描述: 要进行填充的字段列表，可用空白或逗号分隔。字段名可使用通配符匹配"
+            }
+        },
+        "Related commands": "fillnull",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "filldown [\\<space-or-comma-field-list\\>]",
+        "Example": "示例1: 对所有字段，都进行null值填充  \n`* | filldown`  \n  \n示例2: 对字段x和满足通配符c*条件的字段，进行null值填充  \n`* | filldown x c*`"
+    },
+    {
+        "Command_Name": "fillnull",
+        "Description": "将空值替换为指定值。空值是在特定结果中缺失但在另一结果中存在的字段值。使用fillnull与字符串替换空字段值",
+        "Parameters": {
+            "Required": {
+                "field-list": "语法: \\<field\\> (,\\<field\\>)*  \n描述: 用于指定要填充空值的字段"
+            },
+            "Optional": {
+                "value": "语法: \\<string\\>  \n描述: 指定一个字符串来替换空值，默认为\"0\""
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "fillnull [value=\\<string\\>] \\<field-list\\>",
+        "Example": "示例: 创建一条日志并且a字段为空，使用fillnull来给a字段填充默认值fillnull_source  \n`|makeresults count=1 | eval a=null| fillnull value=\"fillnull_source\" a`"
+    },
+    {
+        "Command_Name": "foreach",
+        "Description": "对字段列表执行流式命令",
+        "Parameters": {
+            "Required": {
+                "wc-field-list": "语法: \\<wc-field\\> ( , \\<wc-field\\>)*  \n描述: 字段列表, 支持*作为通配符",
+                "sub-pipeline": "语法: [[ command ( | command)* ]]  \n描述: 子命令模板，支持管道分隔的多个命令, 必须是流式命令"
+            },
+            "Optional": {
+                "foreach-options": "语法: \\<fieldstr-option\\> | \\<matchstr-option\\> | \\<matchseg1-option\\> | \\<matchseg2-option\\> | \\<matchseg3-option\\>  \n描述: foreach可选的参数  \n参数:  \n`fieldstr-option`-->语法: fieldstr=\\<string\\>, 描述: 匹配的字段名，默认是\\<\\<FIELD\\>\\>  \n  \n`matchstr-option`-->语法: matchstr=\\<string\\>, 描述: 所有通配符匹配到的内容, 默认是\\<\\<MATCHSTR\\>\\>  \n  \n`matchseg1-option`-->语法: matchseg1=\\<string\\>, 描述: 第一个通配符匹配到的内容，默认是\\<\\<MATCHSEG1\\>\\>  \n  \n`matchseg2-option`-->语法: matchseg2=\\<string\\>, 描述: 第二个通配符匹配到的内容，默认是\\<\\<MATCHSEG2\\>\\>  \n  \n`matchseg3-option`-->语法: matchseg3=\\<string\\>, 描述: 第三个通配符匹配到的内容，默认是\\<\\<MATCHSEG3\\>\\>"
+            }
+        },
+        "Related commands": "eval",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "foreach \\<wc-field-list\\> \\<foreach-options\\>* \\<sub-pipe\\>",
+        "Example": "示例1: 对所有前缀是count的字段值加1  \n`* | foreach count* [[ eval \\<\\<FIELD\\>\\> = \\<\\<FIELD\\>\\> + 1 ]]`  \n  \n示例2: 对所有前缀是count的字段求和  \n`* | eval sum = 0 | foreach count* [[ eval tmp = sum | eval sum = tmp + \\<\\<FIELD\\>\\> ]]`"
+    },
+    {
+        "Command_Name": "fromes",
+        "Description": "是一个可以使用elastic dsl来查elasticsearch的数据并作为spl的查询语句的命令",
+        "Parameters": {
+            "Required": {
+                "fromes-options": "语法: \\<host\\> | \\<port\\>  \n描述: fromes可选的参数  \n参数:  \n`host`-->语法: host=\\<string\\>, 描述: 指定es服务的ip, 默认值为localhost  \n  \n`port`-->语法: port=\\<int\\>, 描述: 指定es服务监听的端口, 默认值为9200",
+                "index": "语法: index=\\<string\\>  \n描述: 指定搜索的索引",
+                "querydsl": " 语法: querydsl=\\<string\\>  \n描述: es支持的dsl json, json内的单引号需要加 \\ 转义"
+            },
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "fromes \\<fromes-options\\>* \\<index\\> \\<querydsl\\>",
+        "Example": "示例1: 指定host、index, 执行搜索  \n`|fromes host=10.200.0.140 index=logs-my_app-default querydsl='{\"query\": {\"match_all\": { }}}'`  \n  \n示例2: 指定host、port、index, 执行聚合  \n`|fromes host=10.200.0.140 port=9200 index=logs-my_app-default querydsl='{\"query\": {\"match_all\": { }},\"aggs\": {\"@timestamp_avg\": {\"avg\": {\"field\": \"@timestamp\"}}}}`"
+    },
+    {
+        "Command_Name": "fromkafkapy",
+        "Description": "消费kafka的数据并作为spl的查询语句的命令",
+        "Parameters": {
+            "Required": {
+                "bootstrap-servers": "语法: bootstrap-servers=\\<string\\>  \n描述: kafka服务列表, 使用逗号分隔。默认值为'localhost:9092'",
+                "topic": "语法: topic=\\<string\\>  \n描述: 指定消费的主题",
+                "action": "语法: action=consume | show-partition-info  \n描述: consume是进行消费，show-partition-info是查询分区信息，默认值为为consume.",
+                "partitions": "语法: partitions=\\<string\\>  \n描述: 指定分配分区, 分区不存在时报错, 默认分配所有分区。如 partitions=[0,1]",
+                "offset": "语法: offset=earliest | latest | '0:100, ...'  \n描述: 分区的偏移量。默认是根据分配分区与指定limit计算偏移量消费，消费最近limit条  \n1. `earliest`指定从分配的分区最早的偏移量开始消费；  \n2. `latest`指定从分配的分区最近的偏移量开始消费；  \n3. `'0:100, …​'`指定分配的分区与偏移量进行消费, 分区不存在时报错，这种方式不能和partitions同时使用。",
+                "limit": "语法: limit=\\<int\\>  \n描述: 消费的条数限制. 当消费到指定的数量时停止消费, 默认值为100",
+                "timeout-ms": "语法: timeout-ms=\\<int\\>  \n描述: 消费的超时限制. 当在指定时间内没有收到record时停止消费，默认值为1000"
+            },
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "fromkakfapy (bootstrap-servers | topic | action | partitions | offset | limit | timeout-ms)*",
+        "Example": "示例: 查看test主题的分区信息  \n`|fromkafkapy action=show-partition-info topic=test`  \n  \n示例2: 消费test主题，直到达到3s的超时条件或者获取100条的record  \n`|fromkafkapy topic=test timeout-ms=3000`  \n  \n示例3: 从指定分区0，最近的偏移量开始消费  \n`|fromkafkapy topic=test partitions=[0] offset=latest`  \n  \n示例4: 从偏移量5开始消费分区0  \n`|fromkafkapy topic=test offset='0:5'`"
+    },
+    {
+        "Command_Name": "gentimes",
+        "Description": "可以生成指定范围的时间戳数据",
+        "Parameters": {
+            "Required": {
+                "start": "语法: start = \\<string\\>  \n描述: 用于指定开始时间，可选[ \"2019-01-01\" | \"2019-01-01 18:00:00\" | \"1571557017000\" | \"-1d/d\" | \"now-1d\" ]"
+            },
+            "Optional": {
+                "param-options": "语法: \\<end\\> | \\<increment\\> | \\<humantime\\> | \\<timezone\\>  \n参数:  \n`end`-->语法: end = \\<string\\>, 描述: 用于指定结束时间，可选[ \"2019-01-01\" | \"2019-01-01 18:00:00\" | \"1571557017000\" | \"-1d/d\" | \"now-1d\" ]，默认为当天23:59:59  \n  \n`increment`-->语法: increment = \\<string\\>, 描述: 用于指定步长，时长+[s|m|h|d], 默认为1d  \n  \n`humantime`-->语法: humantime = \\<bool\\>, 描述: 是否生成两个个新字段为starthuman和endhuman，用于将start和end转换为YYYY-MM-dd:hh:mm:ss格式  \n  \n`timezone`-->语法: timezone = \\<string\\>, 描述: 用于指定时区，默认为+08:00"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "| gentimes \\<start\\> \\<param-options\\>*",
+        "Example": "示例: 根据2019-01-01~2019-01-04这个时间范围，按步长为1d生成出对应的三条数据，并且根据humantime参数为true，生成出对应的starthuman以及endhuman字段  \n`| gentimes start=\"2019-01-01\" end=\"2019-01-04\" increment=\"1d\" humantime=true`"
+    },
+    {
+        "Command_Name": "geostats",
+        "Description": "使⽤geostats命令可以基于地理位置信息，即经度和纬度进行分区域统计  \n  \nNOTE: 由于geostats支持按照多个字段进行分组,所以这里会与stats命令中的by字段有同样的限制，详情见stats命令的NOTE中的group.size以及stats.oneby.group_size配置项",
+        "Parameters": {
+            "Required": {
+                "stats-single-value-func-as": "语法: avg | min | max | sun | count | distinct_count | first | last | earliest | latest | rate | exact_dc | sumsq | var | stddev | mad  \n描述: 与stats命令结合的部分函数，请参考[#与stats有关的函数]"
+            },
+            "Optional": {
+                "geostats-params": "语法: [latfield=\\<field\\>] [longfield=\\<field\\>] [outputlatfield=\\<field\\>] [outputlongfield=\\<field\\>] [binspanlat=\\<double\\>] [binspanlong=\\<double\\>] [maxzoomlevel=\\<int\\>]  \n参数:  \n`latfield`-->语法: latfield=\\<field\\>, 描述: 指定的纬度字段，默认值为lat  \n  \n`longfield`-->语法: longfield=\\<field\\>, 描述: 指定的经度字段，默认值为lon  \n  \n`outputlatfield`-->语法: outputlatfield=\\<field\\>, 描述: 结果中纬度分桶后的字段名，默认值为latitude  \n  \n`outputlongfield`-->语法: outputlongfield=\\<field\\>, 描述: 结果中经度分桶后的字段名，默认值为longitude  \n  \n`binspanlat`-->语法: binspanlat=\\<double\\>, 描述: 纬度分桶间隔，默认值为22.5  \n  \n`binspanlong`-->语法: binspanlong=\\<double\\>, 描述: 经度分桶间隔，默认值为45.0  \n  \n`maxzoomlevel`--> 语法: maxzoomlevel=\\<int\\>, 描述: 最大缩放级别，最大值为9",
+                "by-field": "语法: \\<field\\>, 描述: 分组字段，所有的stats_func将在分组内统计"
+            }
+        },
+        "Related commands": "stats",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "geostats [\\<geostats-params\\>]* \\<stats-single-value-func\\> [\\<stats-single-value-func\\>]* [by \\<by-field\\>]",
+        "Example": "示例: 纬度字段为verdors.VendorLatitude，经度字段为verdors.VendorLongitude，结果中纬度分桶字段为ccc，结果中经度字段分桶字段为ddd，纬度分桶间隔为35.5，经度分桶间隔为40.65，最大缩放级别为8时对应地理区域中事件数的统计值。  \n`appname:vendors | geostats latfield=vendors.VendorLatitude longfield=vendors.VendorLongitude outputlatfield=ccc outputlongfield=ddd binspanlat=35.5 binspanlong=40.65 maxzoomlevel=8 count() as cnt by hostname`"
+    },
+    {
+        "Command_Name": "inputlookup",
+        "Description": "使⽤inputlookup 命令可以读取lookup的表，⽬前lookup表⽀持csv⽂件(以.csv为后缀名)，kv字典，资产实体（通过lookup-type参数指定）。csv⽂件第⼀⾏需为字段名的信息。",
+        "Parameters": {
+            "Required": {
+                "filename-or-kvstorename-or-assetname": "语法: \\<file-name\\>  \n描述: 文件名必须以.csv结尾，无须提供路径。文件为通过字典上传或者outputlookup写出的文件。kvstore必须在所属domain和app下已经定义好。使用资产实体时资产模型必须存在。"
+            },
+            "Optional": {
+                "lookup-type": "语法: (csv: | kvstore: | asset: )  \n描述: inputlookup文件类型，csv：csv文件；kvstore：kv字典；asset：资产实体。不填优先匹配csv，不成功匹配为kv字典",
+                "param-options": "语法: \\<max\\> | \\<start\\> | \\<format\\>  \n描述: 离散化选项  \n参数:  \n`max`-->语法: max = \\<int\\>, 描述: 最多读取多少个事件，默认值为 10,000,000  \n  \n`start`-->语法: start = \\<int\\>, 描述: 指定从第多少个事件(每⾏为⼀个事件)开始读取，NOTE: start值从0开始，如果start=4表⽰第五个事件，默认值为 0  \n  \n`format`-->语法: format = \\<string\\>, 描述: csv 文件的格式，可选`rfc`,`default`, 默认为`default`"
+            }
+        },
+        "Related commands": "join, lookup, outputlookup",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "inputlookup \\<param-options\\>* \\<lookup-type\\>? \\<filename-or-kvstorename-or-assetname\\>",
+        "Example": "示例1: 读取a.csv中的事件信息  \n`| inputlookup a.csv`  \n  \n示例2: 读取kvstore名为packetsrc中的事件信息  \n`| inputlookup packetsrc`"
+    },
+    {
+        "Command_Name": "iplocation",
+        "Description": "从ip地址抽取地理信息",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<string\\>  \n描述: IP字段"
+            },
+            "Optional": {
+                "prefix": "语法: prefix=\\<field\\>  \n描述: 给产生的字段名加上前缀"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "iplocation [prefix=\\<string\\>] \\<field\\>",
+        "Example": "示例: 从clientip字段抽取出地理信息  \n`* | iplocation clientip`"
+    },
+    {
+        "Command_Name": "join",
+        "Description": "对父管道的结果和子管道的结果进行类似sql的join  \n  \nNOTE: 由于性能的影响，子管道的结果数最大为50000条，对应配置项join.subsearch.max_count。",
+        "Parameters": {
+            "Required": {
+                "field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 指定要用于连接的具体字段",
+                "subsearch": "语法: \\<sub_pipeline\\>  \n描述: 子搜索管道"
+            },
+            "Optional": {
+                "param-options": "语法: \\<type\\> | \\<max\\> | \\<overwrite\\>  \n描述: join命令的选项  \n参数:  \n`type`-->语法: type = inner | left, 描述: 要执行的连接类型，inner和left的区别局势他们如何对待主管道和自管道中的结果不匹配事件，inner连接的结果将不包括没有匹配的事件，left连接不要求必须具有匹配的字段，对于主管道中不匹配的事件将被保留。默认值是inner  \n  \n`max`-->语法: max = \\<int\\>, 描述: 指定每个主结果可以连接的最大子结果数，默认为1  \n  \n`overwrite`-->语法: overwrite = \\<bool\\>"
+            }
+        },
+        "Related commands": "appendcols, lookup",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "join \\<param-options\\>* \\<field-list\\> [[ subsearch ]]",
+        "Example": "示例: 统计过去一天每个小时每个ip的事件数占当前这个小时总数的百分比  \n`logtype:apache | bucket timestamp span=1h as ts | stats count() as ip_count by apache.clientip,ts | join type=left ts [[ logtype:apache | bucket timestamp span=1h as ts | stats count() as hour_count by ts ]] | eval ippercent=100 * ip_count / hour_count`"
+    },
+    {
+        "Command_Name": "jpath",
+        "Description": "jpath用于支持对json的数据处理，提供类似xpath的机制，并配合上多值函数对json数据进行提取和处理",
+        "Parameters": {
+            "Required": {
+                "output": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 表示抽取的输出字段名，字段类型收到json-path的影响，可能为单值也可能为多值类型",
+                "json-path": "语法: \\<double-quoted-string\\>  \n描述: json-path描述的路径。语法详见: [JsonPath](https://github.com/json-path/JsonPath)"
+            },
+            "Optional": {
+                "input": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 指定json类型的输入字段，默认为raw_message"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "jpath [input=\\<field\\>] output=\\<field\\> path=\\<json-path\\>",
+        "Example": "示例: 日志原文为{ \"a\": [ [\"x1\",\"r1\",\"31\"], [\"x2\",\"r2\",\"32\"], [\"x3\",\"r3\",\"33\"] ]}，其中a为数组的数组，其中第三个元素为价格，抽取所有价格，抽取结果为多值类型  \n`appname:wp_test2 | jpath output=prices path=\"*a.[*].[2]\"`"
+    },
+    {
+        "Command_Name": "kvextract",
+        "Description": "提供抽取功能，从指定字段的字符串值中按照指定的键值分割符和对分隔符进行键值抽取，抽取出来的结果以新字段的形式添加在结果中",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "field": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 用于指定抽取的字段，默认为raw_message",
+                "kvextract-param": "语法: \\<clean_keys\\> | \\<kvdelim\\> | \\<limit\\> | \\<maxchars\\> | \\<mv_add\\> | \\<pairdelim\\>  \n参数:  \n`clean_keys`-->语法: clearn_keys = \\<bool\\>, 描述: 为true时表示当抽取出来的key值中有非字母或数字的字符时，用下划线代替这些字符，默认为false  \n  \n`kvdelim`-->语法: kvdelim = \\<string\\>, 描述: 指定键与值的分隔符，默认为'='  \n  \n`limit`-->语法: limit = \\<int\\>, 描述: 指定最多抽取多少个键值对，默认为50  \n  \n`maxchars`-->语法: maxchars = \\<int\\>, 描述: 指定最多扫描多少个字符用来抽取，默认为10240  \n  \n`mv_add`-->语法: mv_add = \\<bool\\>, 描述: 指定是否对同一key抽取时创建多值，默认为false  \n  \n`pairdelim`-->语法: pairdelim = \\<string\\>, 描述: 指定kv对的分隔符，默认为' '"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "kvextract [\\<field\\>] \\<kvextract-param\\>*",
+        "Example": "示例1: 按照默认参数抽取json.kvex字段  \n`appname:lykv | kvextract json.kvex`  \n  \n示例2: 抽取json.kvex字段，当抽取出来的key值中有非字母或数字的字符时，用下划线代替这些字符  \n`appname:lykv | kvextract json.kvex clean_keys=true`"
+    },
+    {
+        "Command_Name": "ldapfetch",
+        "Description": "该命令可以将指定dn下属性值返回并添加在每条结果后，dn为前序命令产生的字段名称",
+        "Parameters": {
+            "Required": {
+                "ldap-base-param": "语法: \\<domain\\>",
+                "dn": "语法: dn = \\<field\\>  \n描述: 查询ldap的distinguish name，由前序命令产生的字段值替换"
+            },
+            "Optional": {
+                "domain": "语法: domain = \\<string\\>  \n描述: 规定连接的ldap配置名称",
+                "attrs": "语法: attrs = \\<string\\>  \n描述: 逗号分割的属性名称"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "ldapfetch \\<ldap-base-param\\> \\<dn\\> [\\<attrs\\>]",
+        "Example": "示例: 将dn为memberOf中所有值下的cn description属性返回并添加在每条结果后  \n`|ldapsearch domain=\"SPL\" search=\"(objectclass=group)\" attrs=\"memberOf\" |mvexpand memberOf |ldapfetch dn=memberOf attrs=\"cn,description\"`"
+    },
+    {
+        "Command_Name": "ldapfilter",
+        "Description": "该命令可以将指定search语句中的属性值返回并添加在每条结果后，其中domain和search都可以由前面命令产生的结果值填充",
+        "Parameters": {
+            "Required": {
+                "ldap-base-param": "语法:  \\<domain\\>",
+                "search": "语法: search = \\<string\\>  \n描述: 查询ldap的search语句"
+            },
+            "Optional": {
+                "domain": "语法: domain = \\<string\\>  \n描述: 规定连接的ldap配置名称",
+                "basedn": "语法: basedn = \\<string\\>  \n描述: 指定搜索开始的ldap节点",
+                "attrs": "语法: attrs = \\<string\\>  \n描述: 为逗号分割的属性名称",
+                "ldap-filter-param": "语法: \\<basedn\\> | \\<attrs\\>"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "ldapfilter \\<ldap-base-param\\> \\<search\\> \\<ldap-filter-param\\>*",
+        "Example": "示例: 将domain为dest_nt_domain字段中所有值并且搜索对应的src_user的结果，取telephoneNumber和displayName字段返回  \n`* |stats count by src_user,dest_nt_domain |ldapfilter domain=\"$dest_nt_domain$\" search=\"(objectClass=$src_user$)\" attrs=\"telephoneNumber,displayName\"`"
+    },
+    {
+        "Command_Name": "ldapgroup",
+        "Description": "该命令可以查询规定dn下所有关联的节点信息，结果将增加member_dn member_domain member_name member_type mv_combo五个字段，其中最后一个字段为前四个字段的拼接值",
+        "Parameters": {
+            "Required": {
+                "ldap-base-param": "语法: \\<domain\\>",
+                "groupdn": "语法: groupdn = \\<string\\>  \n描述: 查询的dn名称"
+            },
+            "Optional": {
+                "domain": "语法: domain = \\<string\\>  \n描述: 规定连接的ldap配置名称"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "ldapgroup \\<ldap-base-param\\> [\\<groupdn\\>]",
+        "Example": "示例: 将名称为spl的ldap配置环境中，dn名称为groupa下所有关联的节点信息  \n`|ldapsearch domain=\"SPL\" search=\"(objectClass=group)\"|ldapgroup domain=\"SPL\" groupdn=\"groupa\"`"
+    },
+    {
+        "Command_Name": "ldapsearch",
+        "Description": "该命令可以对ldap进行搜索并将指定结果返回",
+        "Parameters": {
+            "Required": {
+                "ldap-base-param": "语法:  \\<domain\\>",
+                "search": "语法: search = \\<string\\>  \n描述: 查询ldap的search语句"
+            },
+            "Optional": {
+                "attrs": "语法: attrs = \\<string\\>  \n描述: 为逗号分割的属性名称",
+                "domain": "语法: domain = \\<string\\>  \n描述: 规定连接的ldap配置名称",
+                "scope": "语法: scope = base | noe | sub  \n描述: 代表抽哪一层的结果, `base`代表只搜索当前层级、`noe`代表当前层级+向下一级，`sub`代表所有子层级的结果都抽取",
+                "limit": "语法: limit = \\<int\\>  \n描述: 规定返回结果最多有多少条",
+                "basedn": "语法: basedn = \\<string\\>  \n描述: 指定搜索开始的ldap节点",
+                "ldap-search-param": "语法: \\<basedn\\> | \\<attrs\\> | \\<limit\\> | \\<scope\\>"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "ldapsearch \\<ldap-base-param\\> \\<search\\> \\<ldap-search-param\\>*",
+        "Example": "示例: 查询ldap配置为SPL环境中所有objectclass为user的节点  \n`| ldapsearch domain=\"SPL\" search=\"(objectClass=user)\"`"
+    },
+    {
+        "Command_Name": "ldaptestconnection",
+        "Description": "该命令可以测试连接已配置好的ldap环境",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "ldap-base-param": "语法:  \\<domain\\>",
+                "domain": "语法: domain = \\<string\\>  \n描述: 规定连接的ldap配置名称"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "ldaptestconnection \\<ldap-base-param\\>",
+        "Example": "示例: 测试连接ldap配置名称为testcon的ldap环境配置，如成功返回true  \n`| ldaptestconnection domain=\"testcon\"`"
+    },
+    {
+        "Command_Name": "limit",
+        "Description": "以搜索顺序，返回前N个结果或者直到eval表达式为false的结果。使用与head相同",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "limit-expr": "语法: \\<number\\> | (\\<expression\\>) [limit-params]*  \n描述: 返回结果数或要满足的表达式  \n参数:  \n`number`-->语法: \\<int\\>, 描述: 返回结果的数量。默认是10  \n  \n`expression`-->语法: bool\\>, 描述: 有效的eval表达式，其值为布尔值。搜索将返回结果，直到该表达式的计算结果为false  \n  \n`limit-params`-->语法: null = \\<bool\\> | keeplast = \\<bool\\>, 描述: 控制参数  参数: [语法:keeplast=\\<bool\\>, 描述: 控制是否保留结果集中最后一个使得eval表达式评估为false的结果，设置为true则保留，为false则丢弃。默认为false; 语法: null=\\<bool\\>, 描述: 控制eval表达式评估为NULL时如何处理，设置为true则认定eval表达式为true，为false则认定eval表达式为false。默认为false]"
+            }
+        },
+        "Related commands": "mvcombine, makemv",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "limit [limit-expr]",
+        "Example": "示例1: 保留前2条结果  \n`sourcetype:splserver | limit 2`  \n  \n示例2: 当count字段为null时，使得count\\<5评估为NULL，认定count\\<5为true，保留直到使得count\\<5为false的结果，并且保留最后一条  \n`sourcetype:splserver | limit count\\<5 null=true keeplast=true`"
+    },
+    {
+        "Command_Name": "head",
+        "Description": "以搜索顺序，返回前N个结果或者直到eval表达式为false的结果。使用与limit相同",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "limit-expr": "语法: \\<number\\> | (\\<expression\\>) [limit-params]*  \n描述: 返回结果数或要满足的表达式  \n参数:  \n`number`-->语法: \\<int\\>, 描述: 返回结果的数量。默认是10  \n  \n`expression`-->语法: bool\\>, 描述: 有效的eval表达式，其值为布尔值。搜索将返回结果，直到该表达式的计算结果为false  \n  \n`limit-params`-->语法: null = \\<bool\\> | keeplast = \\<bool\\>, 描述: 控制参数, [参数: `keeplast`-->语法:keeplast=\\<bool\\>, 描述: 控制是否保留结果集中最后一个使得eval表达式评估为false的结果，设置为true则保留，为false则丢弃。默认为false; `null`-->语法: null=\\<bool\\>, 描述: 控制eval表达式评估为NULL时如何处理，设置为true则认定eval表达式为true，为false则认定eval表达式为false。默认为false]"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "head [limit-expr]",
+        "Example": "示例1: 保留前2条结果  \n`sourcetype:splserver | head 2`  \n  \n示例2: 当count字段为null时，使得count\\<5评估为NULL，认定count\\<5为true，保留直到使得count\\<5为false的结果，并且保留最后一条  \nsourcetype:splserver | head count\\<5 null=true keeplast=true`"
+    },
+    {
+        "Command_Name": "lookup",
+        "Description": "使用lookup命令可以将外部文件中的结果和当前管道的结果进行join，可为/data/rizhiyi/spldata/lookup下的本地文件、outputlookup生成的文件或kvstore存储或资产实体。",
+        "Parameters": {
+            "Required": {
+                "lookup-field-list": "语法: \\<lookup-field\\> (, \\<lookup-field\\>)*  \n描述: 外部文件中需要加入搜索结果的字段列表  \n参数:  \n`lookup-field`-->语法: \\<field\\> [as \\<field\\>], 描述: 对字段列表的重命名",
+                "filename-or-kvstorename-or-assetname": "语法: \\<file-name\\>, 描述: 需要关联的外部文件的uri地址，支持http和https地址，或者本地共享文件的地址，或者已经定义并创建好的kvstore名称，或者已经存在的资产模型名称",
+                "join-field-list": "语法: \\<join-field\\> (, \\<join-field\\>)*  \n描述: join字段列表  \n参数:  \n`join-field`-->语法: \\<field\\> = \\<field\\>"
+            },
+            "Optional": {
+                "lookup-type": "语法: (csv: | kvstore: | asset: )  \n描述: lookup文件类型，csv：csv文件；kvstore：kv字典；asset：资产实体。不填优先匹配csv，不成功匹配为kv字典",
+                "param-options": "语法: \\<case-sensitive-match\\> ｜ \\<match-type\\> | \\<format\\>  \n参数:  \n`max`-->语法: max = \\<int\\>, 描述: 指定每个主结果可以连接的最大自结果数，默认为1  \n  \n`overwrite`-->语法: overwrite = \\<bool\\>, 描述: 是否覆盖主结果，默认为false  \n  \ncase-sensitive-match`-->语法: case_sensitive_match = \\<bool\\>, 描述: 精确匹配时是否区分大小写，默认值为true  \n  \n`match-type`-->语法: match_type = \\<match-type-funcs\\> (, \\<match-type-funcs\\>)*， 描述: lookup的匹配方式，目前支持cidr和wildcard，默认为精确匹配(不需要单独写出)。这里field-list填写的是搜索数据中所使用该规则的字段列表，非csv中需要使用该规则的字段列表。[参数: match-type-funcs-->语法: cidr(\\<field\\>[, \\<field\\>]*) | wildcar(\\<field\\>[, \\<field\\>]*), 描述: cidr或wildcard的匹配规则]",
+                "format": "语法: format = \\<string\\>  \n描述: csv 文件的格式，可选`rfc`,`default`, 默认为`default`"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "pe\\>? \\<filename-or-kvstorename-or-assetname\\> on \\<join-field-list\\> \\<param-options\\>*",
+        "Example": "示例1: 假设外部csv文件有以下字段：host, user, department, 将搜索结果中的username字段和csv文件的user进行关联，在搜索结果中增加host, user, department字段  \n`| makeresults count=1 | eval username=\"hunter\" | lookup user,host,department /data/rizhiyi/spldata/lookup/user.csv on username=user`  \n  \n示例2: 假设外部csv文件有以下字段：id,mask,pattern,raw, 将搜索结果中的id字段和csv文件的id进行精确匹配，搜索结果中的ip和csv中的mask进行cidr匹配，搜索结果中的rvalue与csv中的pattern进行通配匹配，在搜索结果中增加mask,pattern,raw字段  \n`appname:a | rename 'value' as rvalue | lookup mask,pattern,raw lookupJoiner.csv on id=id,ip=mask,rvalue=pattern match_type=cidr(ip),wildcard(rvalue)`  \n  \n示例3: 假设外部csv文件有以下字段：appname,word, 将搜索结果中的app字段和csv文件的appname进行关联，在搜索结果中增加word字段，其中匹配时不区分大小写。  \n`| makeresults | eval app = \"Test\" | lookup word match_test.csv on app=appname case_sensitive_match=false`"
+    },
+    {
+        "Command_Name": "lookup2",
+        "Description": "使用lookup2命令可以添加自定义字段。通过在指定脚本存放路径下(默认为：/data/rizhiyi/spldata/lookup/script)添加相关的配置文件以及python处理数据文件即可添加自定义字段。",
+        "Parameters": {
+            "Required": {
+                "script-name": "语法: \\<identifier\\>  \n描述: 需要关联的script-name"
+            },
+            "Optional": {
+                "param-options": "语法: \\<outputfields\\>  \n参数:  \n`outputfields`-->语法: outputfields \\<field\\>(,\\<field\\>)*, 描述: 结果过滤字段，结果中只包含指定的字段"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "lookup2 \\<script-name\\> \\<param-options\\>*",
+        "Example": "示例:  \n`* | lookup2 external_script outputfields appname,timestamp,appnametimestamp`  \n该脚本传入appname以及timestamp两个字段值，将起组合的值拼接起来并生成一个新的字段为appnametimestamp。该脚本在配置文件中配置的对应访问名称为external_sccript。 "
+    },
+    {
+        "Command_Name": "makecontinuous",
+        "Description": "在一定数值或时间范围内，根据给定的区间大小，对原始数据升序处理，并补充不连续的区间，区间的划分采用向前圆整的方式",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "\\<field\\>": "语法: 需要进行区间补全的字段  \n默认值: timestamp（内置字段）",
+                "\\<param-options\\>": "语法: [\\<span\\>] | [\\<start\\>] | [\\<end\\>]  \n参数:  \n`span`-->描述: 桶的大小, 可以是数值类型（比如 10），也可以是时间类型（比如 10d，时间类型的单位可以是w, d, h, m, s）, 默认值: 1 （如果是时间类型，则表示1ms）  \n  \n`start`-->描述: 区间补全的起始范围, 实际的起始范围是start的向前圆整（时间类型只支持long类型的时间戳）, 默认值: 数据最小值  \n  \n`end`-->描述: 区间补全的结束范围, 实际的结束范围是end的向前圆整（时间类型只支持long类型的时间戳）, 默认值: 数据最大值"
+            }
+        },
+        "Related commands": "chart, timechart",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "makecontinuous [\\<field\\>] \\<param-options\\>*",
+        "Example": "示例1: 对数值类型的数据，对字段x，按大小为3进行排序分桶，在216到226之间进行补全  \n`* | makecontinuous x span=3 start=216 end=226`  \n  \n示例2: 对时间类型的数据，对字段time，按大小为1d进行排序分桶和补全  \n`* | makecontinuous time span=1d`"
+    },
+    {
+        "Command_Name": "makeresults",
+        "Description": "构造指定的结果",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "count": "语法: \\<int\\>  \n描述: 产⽣的结果个数"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "| makeresults [count=\\<int\\>]",
+        "Example": "示例: 产⽣⼀条结果并⽣成新的app字段，⽤于后续map命令  \n`| makeresults count = 1 | eval app = \"zookeeper\" | map \"* appname:$app$\"`"
+    },
+    {
+        "Command_Name": "map",
+        "Description": "该命令可以将上次搜索结果应用于接下来的搜索中， 类似于python的map功能",
+        "Parameters": {
+            "Required": {
+                "\\<subsearch_command \\>": "描述: 子查询搜索语句 如 `... | map \"index = yotta  starttime=$start$ login_name=$user$\"`"
+            },
+            "Optional": {
+                "\\<maxsearches\\>": "语法: maxsearches = \\<int\\>  \n描述: 最大的搜索个数  \n默认值: 10"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "map \"\\<subsearch_command\\>\" [maxsearches = \\<int\\>]",
+        "Example": "示例: 列出日志数最多的三种logtype他们各自最大的日志文本长度  \n`* |  stats count() by logtype | limit 3 | rename logtype as type | map \"logtype:$type$ | stats max(raw_message_length)\"`"
+    },
+    {
+        "Command_Name": "movingavg",
+        "Description": "在一个指定大小的移动窗口下计算某个数值字段的移动平均值",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 需要计算移动平均值的字段"
+            },
+            "Optional": {
+                "as-field": "语法: \\<field\\>  \n描述: 移动平均值的输出字段名，默认为_moving_avg",
+                "window": "语法: \\<int\\>  \n描述: 移动窗口的大小，对于序号小于window的事件，将根据前面实际的事件进行计算",
+                "by-field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 分组字段，在分组内进行移动平均值的计算"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "movingavg \\<field\\>[,window] [as \\<as_field\\>] [by \\<by-field-list\\>]",
+        "Example": "示例: 以分钟为单位统计apache返回的apache.resp_len的长度的和，以5为窗口计算移动平均值。得到一个每分钟的响应长度和的平滑后的值  \n`logtype:apache | bucket timestamp span=1m as ts | stats sum(apache.resp_len) as sum_len by ts | movingavg sum_len,5 as moving_avg_resp_len`"
+    },
+    {
+        "Command_Name": "mvcombine",
+        "Description": "将除指定字段外，其他字段值均相等的行合并为一行，指定字段将合并为一个数组值  \n  \nNOTE:   \n1. mvcombine指令由于需要将相同的行进行合并，所以需要在内存中暂存结果，所以对性能有限制。目前默认限制只对5万条结果进行mvcombine，可以根据自己服务器的性能进行调整spl配置项mvcombine.max_events  \n  \n2. mvcombine需要有除指定field以外值都相同的列",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<string\\>  \n描述: 需要指定的字段"
+            },
+            "Optional": {
+                "sep": "语法: sep = \\<string\\>  \n描述: 多行合并时的指定字段值作为字符串合并时的分隔符，默认为空格"
+            }
+        },
+        "Related commands": "mvexpand, makemv",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "mvcombine [\\<sep\\>] \\<field\\>",
+        "Example": "示例:  \n`* | table appname, hostname, ip | limit 10 | mvcombine ip`"
+    },
+    {
+        "Command_Name": "mvexpand",
+        "Description": "将一行变成多行，指定字段如果为数组值那么就分成一行一个的值，如果为单值则无影响，其他字段的值原样复制",
+        "Parameters": {
+            "Required": {
+                "multi-value-field": "语法: \\<field\\>  \n描述: 须为多值字段，如果字段值为单值将不会有任何改变"
+            },
+            "Optional": {
+                "limit": "语法: limit = \\<int\\>  \n描述: 一行分裂为多行时取指定字段数组值的前N个进行分裂，因为有可能存在一个数组里面元素过多的情况，所以在此进行限制。"
+            }
+        },
+        "Related commands": "mvcombine, makemv",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "mvexpand \\<multi-value-field\\> \\<param-options\\>*",
+        "Example": "示例:  \n`* | mvexpand json.a`"
+    },
+    {
+        "Command_Name": "outputlookup",
+        "Description": "使用 outputlookup 命令可以生成字典管理中的 csv 文件；也可以生成kvstore或资产实体，名称和类型在命令中指定  \n  \nNOTE: maxresult参数值的最大上限值为500000，如果语句中maxresult参数值超过该值，则取该值作为导出结果的最大数量，对应的配置项为outputlookup.max_result_limit",
+        "Parameters": {
+            "Required": {
+                "filename-or-kvstorename-or-assetname": "语法: \\<file-name\\> | \\<kvstorename\\> | \\<asset-name\\>  \n描述: 文件名必须以.csv结尾，无须提供路径。文件为通过字典上传或者outputlookup写出的文件。kvstore必须在所属domain和app下已经定义好。使用资产实体时资产模型必须存在。"
+            },
+            "Optional": {
+                "lookup-type": "语法: (csv: | kvstore: | asset: )  \n描述: utputlookup文件类型，csv：csv文件；kvstore：kv字典；asset：资产实体。不填优先匹配csv，不成功匹配为kv字典",
+                "param-options": "语法: \\<appendwrite\\> | \\<createempty\\> | \\<overrideifempty\\> | \\<maxresult\\> | \\<keyfield\\> | \\<format\\>  \n描述: 离散化选项  \n参数  \n`appendwrite`-->语法: appendwrite=\\<bool\\>, 描述: 表示是否为追加写，默认为false  \n  \n`createempty`-->语法: createempty=\\<bool\\>, 描述: 表示如果结果为空是否要创建一个空文件，默认为false  \n  \n`overrideifempty`-->语法: overrideifempty=\\<bool\\>, 描述: 表示如果结果为空,是否要用空文件覆盖已经存在的重名文件，默认为true  \n  \n`maxresult`-->语法: maxresult=\\<int\\>, 描述: 表示导出结果的最大数量，默认为500000  \n  \n`keyfield`-->语法: keyfield=\\<field\\>, 描述: kvstore中的key字段名称。kvstore中将被指定为arangodb的key值的字段名称  \n  \n`format`-->语法: format = \\<string\\>, 描述: csv 文件的格式，可选`rfc`,`default`, 默认为`default`"
+            }
+        },
+        "Related commands": "inputlookup, lookup",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "outputlookup \\<param-options\\>* \\<lookup-type\\>? \\<filename-or-kvstorename-or-assetname\\>",
+        "Example": "示例1: 将按照时间分组统计的日志个数统计结果写出到外部csv  \n`* | stats count() by timestamp| outputlookup stats_count_by_timestamp.csv`  \n  \n示例2: 将按照clientip、type分组统计的日志个数统计结果写出到kvstore存储  \n`index=packet * | stats count() as cnt by json.client_ip, json.type | rename json.client_ip as client_ip | rename json.type as type | outputlookup packetsrc`"
+    },
+    {
+        "Command_Name": "parse",
+        "Description": "用于搜索时动态抽取字段  \nNOTE:  \n1. 不支持eval后的字段  \n2. parse.max_match：max_match参数的上限，用于限制输入指定的max_match参数值，如果超过该配置项的值，默认值为100",
+        "Parameters": {
+            "Required": {
+                "\\<regex\\>": "语法: \\<正则表达式\\>  \n描述: 支持java的正则表达式，应该包括(?\\<name\\>X)形式的named-capturing group, 否则该正则表达式将被忽略"
+            },
+            "Optional": {
+                "\\<field\\>": "语法: \\<string\\>  \n描述: 用于抽取正则表达式的字段，如果未指定，默认为: raw_message",
+                "\\<max_match\\>": "语法: \\<int\\>  \n描述: 用于指定抽取正则表达式的次数，如果未指定则默认抽取第一个匹配到的值，如果该值大于1则返回类型为多值字段类型，反之返回单值字段类型"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "parse [field=\\<field\\>] \"\\<regex\\>\" [max_match=\\<int\\>]",
+        "Example": "示例1: 从日志原文中抽取ip地址，得到新的字段ip_addr,并且按照ip_addr分组并计算appname的个数  \n`* | parse \"(?\\<ip_addr\\>\\d+\\.\\d+\\.\\d+\\.\\d+)\" | stats count(appname) by ip_addr`  \n  \n示例2: 抽取request_path 的第一级目录outer_path,并按照outer_path分组统计appname的个数  \n`logtype:apache | parse field=apache.request_path \"^(?\\<outer_path\\>/[^/]*)\" | stats count(appname) by outer_path`  \n  \n示例3: 从日志原文中抽取raw_message中的前两组数字  \n`*|parse \"(?\\<messageNum\\>\\d+)\" max_match=2`"
+    },
+    {
+        "Command_Name": "partition",
+        "Description": "使用partition命令可以将制定统计搜索中的分组字段的值进行随机分组，以解决离散值过多引起的统计分组数限制的问题",
+        "Parameters": {
+            "Required": {
+                "\\<int\\>": "格式: 一个大于0的整数  \n描述: 指定将分组字段分成多少组",
+                "\\<field\\>": "语法: \\<string\\>  \n描述: 指定后面统计中使用的分组字段名称  \nNOTE: 此处指定的分组字段必须为后续统计命令中使用的第一个分组字段",
+                "\\<sub_stats_command\\>": "描述: 子搜索命令，必须为统计类型  \nNOTE: 此处只可以指定一个统计命令，且必须有分组字段，第一个分组字段和外层by field需要一致。统计命令包括：stats top sort timechart chart geostats"
+            },
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "partition [\\<int\\>] [by \\<field\\>] [[ sub_stats_command ]]",
+        "Example": "示例1: 按appname分组统计上周日志个数  \n`* | partition 10 by appname [[stats count() by appname]]`  \n  \n`* |stats count() by appname`"
+    },
+    {
+        "Command_Name": "rare",
+        "Description": "获取字段出现次数最少的值的集合",
+        "Parameters": {
+            "Required": {
+                "\\<field\\>": "语法: \\<field\\>  \n描述: 需要rare的字段名"
+            },
+            "Optional": {
+                "rare-option": "语法: countfield=\\<field\\> | percentfield=\\<field\\> | showcount=\\<bool\\> | showperc=\\<bool\\> | limit=\\<int\\> | maxdoc=\\<int\\>  \n描述: rare选项  \n参数:  \n`precision`-->语法: precision=\\<number\\>  \n  \n`countfield`-->语法: countfield=\\<field\\>, 描述: rare字段数量输出的字段名, 默认值是'count  \n  \n`percentfield`-->语法: percentfield=\\<field\\>, 描述: rare字段数量百分比输出的字段名, 默认值是'percent'  \n  \n`showcount`-->语法: showcount=\\<bool\\>, 描述: 是否输出字段数量, 默认值是true  \n  \n`showperc`-->语法: showperc=\\<bool\\>, 描述: 是否输出数量百分比字段, 默认值是true  \n  \n`limit`-->语法: limit=\\<int\\>  \n描述: 结果的最大行数, 不设置使用spl配置项stats.rare.count_limit  \n  \n`maxdoc`-->语法: maxdoc=\\<int\\>, 描述: 限制字段的最大数量，超过的值不会显示，默认不限制",
+                "by-fieldlist-clause": "语法: by \\<field\\>(,\\<field\\>)*  \n描述: 分组的字段列表，表示先按照field-list分组，在分组内部计算rare"
+            }
+        },
+        "Related commands": "stats, top",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "rare \\<field\\> \\<rare-option\\>* [by-fieldlist-clause]",
+        "Example": "示例1: 返回出现次数最少出现的，并且在5次以下的srcip，并输出srcip_cnt字段作为count值，srcip_perc段作为百分比  \n`* | rare srcip countfield=srcip_cnt percentfield=srcip_perc maxdoc=5`  \n  \n示例2: 按照appname进行分组，分组内找到出现次数最少的clientip  \n`* | rare apache.clientip by appname`"
+    },
+    {
+        "Command_Name": "rename",
+        "Description": "重新命名指定字段 将src-field的字段，重命名为dest-field，可用于结果集中字段名的修改，比如输出为中文字段名；同时目前支持对多个字段同时进行重命名操作,支持通配符",
+        "Parameters": {
+            "Required": {
+                "rename-item": "语法: \\<src-field\\> as \\<dest-field\\>  \n描述: 需要rename的字段项  \n参数:  \n`src-field`-->语法: \\<field\\>|\\<single-quoted-string\\>|\\<wildcardfield\\>, 描述: 需要被重命名的字段  \n  \n`dest-field`-->语法: \\<field\\>|\\<single-quoted-string\\>|\\<wildcardfield\\>, 描述: dest-field可以是一个合法的字段名，也可以是一个字符串的常量，比如 \"Status from apache\""
+            },
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "rename \\<rename-item\\> [,\\<rename-item\\>]*",
+        "Example": "示例1: 将username字段命名为 \"用户名\"  \n`logtype:apache | rename apache.clientip as \"ip地址\"`  \n  \n示例2:将stats生成的cnt字段重命名为计数  \n`logtype:apache |  stats count() as cnt by apache.clientip | rename cnt as \"计数\"`  \n  \n示例3: 将stats生成的tag字段和sp字段重命名其他名称  \n`*  | stats sparkline(avg(apache.resp_len), 1h) as sp by tag | rename tag as tag2, sp as sp2`  \n  \n示例4: 将stats生成的以json开始的字段重命名为以rejson开始的字段名  \n`* |stats count() by json.ip,json.logid,appname|rename json* as rejson*`"
+    },
+    {
+        "Command_Name": "rollingstd",
+        "Description": "计算移动标准差",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 需要计算移动标准差的字段"
+            },
+            "Optional": {
+                "window": "语法: \\<int\\>  \n描述: 移动窗口的大小，对于序号小于window的事件，将根据前面实际的事件进行计算",
+                "as-field": "语法: \\<field\\>|\\<single-quoted-string\\>  \n描述: 移动标准差的输出字段名，默认为_rolling_std",
+                "by-field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 分组字段，在分组内进行移动标准差的计算"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "rollingstd \\<field\\>[,\\<window\\>] [as \\<as-field\\>] [by \\<by-field-list\\>]",
+        "Example": "示例: 以时间分组算出apache返回的response的长度的和，以10为窗口计算rolling的标准差。以观察resp_len的波动情况。  \n`logtype:apache | stats sum(apache.resp_len) as sum_resp_len by timestamp | rollingstd sum_resp_len,10 as resp_len_rolling_std`"
+    },
+    {
+        "Command_Name": "save",
+        "Description": "可将搜索的结果保存为文件，目前仅支持csv格式",
+        "Parameters": {
+            "Required": {
+                "output-file": "语法: \\<file-name\\>  \n描述: 最好指定挂接共享文件系统的目录，否则保存在yotta的某一台服务器上，基于安全的考虑，本地文件的路径必须为/data/rizhiyi/spldata/或者其子目录。"
+            },
+            "Optional": {
+                "param-options": "语法: \\<format\\>  \n描述: 离散化选项  \n参数:  \n`format`-->语法: format = \\<string\\>, 描述: csv 文件的格式，可选`rfc`,`default`, 默认为`default`"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "save \\<param-options\\>* \\<output-file\\>",
+        "Example": "示例: 按照hostname分组统计clientip个数，并保存的apache_clientip.csv文件  \n`*| stats count(apache.clientip) by hostname | save /data/rizhiyi/spldata/apache_clientip.csv`)"
+    },
+    {
+        "Command_Name": "sort",
+        "Description": "按照指定的字段对搜索结果进行排序。对于数值类型将按照数值进行排序，对于字符串类型将按照字典序进行排序。  \nNOTE: sort的最大条数限制，用于限制输入指定的sort后追加的int参数，如果大于默认200000数则报错，对应配置项为sort.max_size",
+        "Parameters": {
+            "Required": {
+                "sort-item-list": "语法: \\<sort-item\\>(,\\<sort-item\\>)*  \n描述: 列出排序所依据的字段列表  \n参数:  \n`sort-item`-->语法: [(+|-)]\\<field\\>, 描述: 单个排序的字段，其中+表示升序，-表示降序，默认为降序"
+            },
+            "Optional": {
+                "sort-count": "语法: \\<int\\>  \n描述: 需要排序的事件数"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "sort [\\<sort-count\\>] by \\<sort-item-list\\>",
+        "Example": "示例1: 对事件结果按照timestamp升序排序  \n`logtype:apache | sort by +timestamp`  \n \n示例2: 统计不同appname下，每个ip的数量，并按照ip的数量降序排序  \n`logtype:apache | stats count(apache.clientip) as ip_count by appname | sort by -ip_count`"
+    },
+    {
+        "Command_Name": "stats",
+        "Description": "提供统计信息，可以选择按照字段分组  \nNOTE:  \n1. 该命令统计或者表格情况下的最大结果数，默认为20000，对应配置项为stats.max_result_count  \n2. group.size 配置项：该命令由于支持by多个字段进行分组统计。如果stats统计时by n个字段进行统计，每个字段假设都有100个值，这样在统计时则会产生100^n个分组，这样一来如果by的字段数足够多或该字段的值的种类足够多，则对性能影响很大，所以我们这边设置了group.size配置项用于限制by的每个的字段的最大分组数  \n3. stats.oneby.group_size 配置项: 该命令由于支持by单个字段进行分组统计时指定单个字段的最大分组数，如果不填则默认取group.size值。",
+        "Parameters": {
+            "Required": {
+                "stats-func-as": "语法: avg | min | max | sun | count | distinct_count | first | last | earliest | latest | rate | exact_dc | sumsq | var | stddev | list | values | top | es | dhg | hg | pct | pct_ranks | rb | sparkline | mad  \n描述: 与stats命令结合的函数，请参考[#与stats有关的函数]"
+            },
+            "Optional": {
+                "field": "语法: \\<field\\> | \\<single-quoted-string\\>  \n描述: 每个stats_function都可以定义输出字段名，否则对后续的计算不可见",
+                "field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 分组字段，所有的stats_func将在分组内统计"
+            }
+        },
+        "Related commands": "top, rare",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "stats (\\<stats_function\\> [as \\<field\\>])+ [by \\<field-list\\>]",
+        "Example": "示例1: 统计ip和status的组合的事件数量  \n`logtype:apache | stats count() by apache.clientip, apache.status`  \n  \n示例2: 统计每个访问路径的平均响应长度  \n`logtype:apache | stats avg(apache.resp_len) as avg_resp_len by apache.request_path | rename avg_resp_len as \"平均响应长度\"`"
+    },
+    {
+        "Command_Name": "streamstats",
+        "Description": "可以对数据的连续变化进行累积性的统计，并将统计结果以新字段的方式添加在原始数据中",
+        "Parameters": {
+            "Required": {
+                "streamstats-func-as": "语法: avg | min | max | sun | count | distinct_count | first | last | earliest | latest | derivative | exact_dc | sumsq | var | stddev | list | values  \n描述: 与stats命令结合的部分函数，请参考[#与stats有关的函数]。  \n注意: 不支持single类型的distinct函数"
+            },
+            "Optional": {
+                "streamstats-params": "语法: [reset_on_change=\\<bool\\>] | [reset_before=\\<eval-expression\\>] | [reset_after=\\<eval-expression\\> ] | [current=\\<bool\\>] | [window=\\<int\\>] | [time_window=\\<span-length\\>] | [global=\\<bool\\>] | [allnum=\\<bool\\>] | [timefield=\\<field\\>]  \n参数:  \n`reset-before`-->语法: reset_before=\\<eval-expression\\>, 描述: 在生成对某一事件的统计值之前重置统计。当此参数与window一起使用时，window也会被重置  \n  \n`reset-after`-->语法: reset_after=\\<eval-expression\\>, 描述: 在生成对某一事件的统计值之后重置统计。当此参数与window一起使用时，window也会被重置  \n  \n`time-window`-->语法: time_window=\\<span-length\\>, 描述: 时间窗口的大小。当time_window和window一起使用时，time_window规定的是一个window内部的时间窗口大小。无论是window还是time_window其实影响的都是在某一窗口中命中的事件数[使用time_window参数的前提是时间必须是按时间字段排序的]  \n参数: [`span-length`-->语法: span_length=\\<int\\> \\<timeunit\\>, 描述: 每个时间窗口的跨度，第一个数字为系数, 参数: `timeunit`-->语法: timeunit=s | m | h | d | w, 描述: 时间单位，分别表示秒，分钟，小时，天，周]  \n  \n`reset-on-change`-->语法: reset_on_change=\\<bool\\>, 描述: 当group by字段的值改变时,是否将累计的统计值重置。只有遇到包含所有group by 字段的事件才会触发这一操作，只有一部分group by 字段的事件会被忽略。当此参数与window一起使用时，window也会被重置。默认为false  \n  \n`current`-->语法: current=\\<bool\\>, 描述: 统计是否包含当前event，默认为true  \n  \n`window`-->语法: window=\\<int\\>, 描述: 事件数窗口大小，默认为0(即所有事件)  \n  \n`global`-->语法: global=\\<bool\\>, 描述: 只有在指定window时生效，决定是否使用单一window还是使用由by字段决定的多个window，默认为true  \n  \n`allnum`-->语法: allnum=\\<bool\\>, 描述: 聚合字段截止目前是否全部为数值。当allnum为false时，遇到聚合字段为非数值型会跳过此条日志进行统计，即当前这条日志的统计结果为空；allnum为true时，遇到聚合字段为非数值型时会将此条及以后所有日志的统计值均置为空。默认为false  \n  \n`timefield`-->语法: timefield=\\<field\\>, 描述: 指定日志中的时间字段名称，默认为timestamp",
+                "field-list": "语法: \\<field\\>(,\\<field\\>)*  \n描述: 分组字段，所有的stats-func-as将在分组内统计"
+            }
+        },
+        "Related commands": "stats",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "streamstats [\\<streamstats-params\\>]* \\<streamstats-func-as\\> [, \\<streamstats-func-as\\> ]* [by \\<field-list\\>]",
+        "Example": "示例1: window为3以及global为true的情况下，按照生成字段b进行分组并连续统计cnt的distinct count值  \n`| makeresults count=10 | streamstats window=10 count() as cnt by timestamp | eval b = cnt%2 | streamstats window=3 global=true dc(cnt) as dc_ by b`  \n  \n示例2: window为3以及global为false的情况下，按照生成字段b进行分组并连续统计cnt的distinct count值  \n`| makeresults count=10 | streamstats window=10 count() as cnt by timestamp | eval b = cnt%2 | streamstats window=3 global=false dc(cnt) as dc_ by b`  \n  \n示例3: window为3以及reset_after为cnt\\>5的情况下，按照生成字段b进行分组并连续统计cnt的distinct count值  \n`| makeresults count=10 | streamstats window=10 count() as cnt by timestamp | eval b = cnt%2 | streamstats reset_after=\"cnt\\>5\" window=3 global=false dc(cnt) as dc_ by b`"
+    },
+    {
+        "Command_Name": "table",
+        "Description": "将查询结果以表格形式展示，并对字段进行筛选，如果日志不包含筛选字段，则用空行显示，支持通配符",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "comma-splitted-fieldlist": "语法: \\<wildcard-field\\>(,\\<wildcard-field\\>)*  \n描述: 使用逗号分割字段",
+                "space-splitted-fieldlist": "语法: \\<wildcard-field\\>(,\\<wildcard-field\\>)*  \n描述: 使用空格分割字段",
+                "wildcard-field": "语法：\\<field\\>|\\<single-quoted-string\\>|\\<wildcardfield\\>"
+            }
+        },
+        "Related commands": "fields",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "table \\<comma-splitted-fieldlist\\> | \\<space-splitted-fieldlist\\>",
+        "Example": "示例1: 将查询中的结果用表格展示并且只显示apache.status和apache.method 字段  \n`* | table apache.status, apache.method`  \n  \n示例2: 将查询中的结果用表格展示并且只显示以json.i开始字段  \n`* |table json.i*`"
+    },
+    {
+        "Command_Name": "timechart",
+        "Description": "timechart的行为是将时间分桶后的统计行为，相当于bucket | stats by  \nNOTE:  \n1. 由于timechart是内部相当于bucket|stats by，所以这里会触发stats命令中的by字段的限制，详情见stats命令的NOTE中的group.size以及stats.oneby.group_size配置项  \n2. timechart的span参数以及minspan，bins之间的关系  \na. 有span参数（minspan以及bins不生效）  \nb. 没有span参数(minspan以及bins才生效)  \n  \n描述:  \n1. 与bucket | stats by不同的是，timechart结果的字段名和意义将比较特别，特别适合于画图。其结果的字段为固定的_time字段，即分桶后的timestamp值；其余的所有字段为by field与统计结果的排列组合值。  \n2. 比较特别的是，timechart使用的by field字段只支持by一个field，不支持by一个fieldlist。原因是timechart可以对byfield的取值情况进行限制（如useother），如果by field允许多个，这个参数将存在歧义。  \n3. timechart只支持统计函数中的单值统计函数，即：avg，min，max，sum，count，dc 比如：timechart max(agent_send_timestamp) as ma count() as cnt by logtype 假设logtype总共两个值apache和other，那么timechart的字段总共有5个，分别为_time，apache:ma，other:ma，apache:cnt，other:cnt。那么timechart的结果一行的含义将变成：在属于某个timestamp分桶值范围内的logtype值为apache的最大agent_send_timestamp值，logtype值为other的最大agent_send_timestamp值，logtype值为apache的事件数count值，logtype值为other的事件数count值，相当于将bucket | stats的结果进行了字段值重组和一定意义上的行列转置。",
+        "Parameters": {
+            "Required": {
+                "timechart-func-as": "语法: avg | min | max | sun | count | distinct_count | first | last | earliest | latest | rate | exact_dc | sumsq | var | stddev | mad  \n语法: 与stats命令结合的函数，请参考[#与stats有关的函数]"
+            },
+            "Optional": {
+                "timechart-by-params": "语法: [useother=\\<bool\\>] | [otherstr=\\<double-quoted-string\\>]  \n参数:  \n`useother`-->语法: useother=\\<bool\\>, 描述: 表示如果限制了limit的大小，落入limit之后的byfield的值是否使用other代替，默认值为false，即不代替并舍弃这些列  \n  \n`otherstr`-->语法: otherstr=\\<double-quoted-string\\>, 描述: useother为true时使用otherstr指定的字符串来代替落入limit之后的byfield的值，默认值为other",
+                "timechart-params": "语法: [sep=\\<string\\>] | [format=\\<string\\>] | [cont=\\<bool\\>] | [limit=\\<int\\>] | [bins=\\<int\\>] | [span=\\<TIMESPAN\\>] | [minspan=\\<TIMESPAN\\>] | [startindex=\\<int\\>] | [endindex=\\<int\\>] | [rendertype=\\<string\\>  \n参数:  \n`span-str`-->语法: span=\\<string\\>, 描述: 表示分桶间隔，格式为数字+单位，与bucket指令span参数的格式相同  \n  \n`sep`-->语法: sep=\\<string\\>, 描述: 表示by field和统计字段组合时的分隔符，默认值为\":\"; 如max(agent_send_timestamp) as ma, by logtype：logtype值为apache时，sep=\"+\" 那么组合出来的字段值为ma+apache; 这里默认的顺序为统计字段+分隔符+by field，如果想改变顺序，请使用下面format参数  \n  \n`format`-->语法: format=\\<string\\>, 描述: 表示规定字段的组合分隔符和组合顺序，默认值为\"$AGG:$VAL\"。 在这个字段中用$AGG表示统计字段，$VAL表示by field的值，所以一般的写法是format=\"$AGG$VAL\"，此时为字段分隔符，如果想改变组合顺序，可将$VAL和$AGG的顺序反过来，分隔符仍需置于中间位置  \n  \n`cont`-->语法: cont=\\<bool\\>, 描述: 表示是否将不连续的时间桶补充为连续，默认为false。因为将时间按照一定的时间间隔进行分桶时，有些桶内可能没有日志或者时间落入桶，此时桶内的所有统计值都为0。默认情况下会将这些桶所在的行去掉，如果置为true则会将这些行补充到结果中。  \n  \n`limit`-->语法: limit=\\<int\\>, 描述: 表示限制使用by field值的个数，默认值为无穷大。即若语句中有 max count avg三种统计函数，by field有10种值，那么在不限制limit的情况下将有3*10+1个字段，即结果中有31列。若limit=5，那么将只取byfield的前5个值与统计字段进行组合，结果就只有3*5+1=16列，结果中也将只有这些列的值。  \n  \n`bins`-->语法: bins=\\<int\\>, 描述: 表示最多有多少个桶，默认值100。timechart指令的结果中分桶个数由bins、span、minspan共同决定，bins只规定了桶的最多个数，桶的个数和时间间隔也会随着整个查询的timespan而动态调整。  \n  \n`minspan`-->语法: minspan=\\<string\\>, 描述: 表示最小分桶间隔，格式与span相同。  \n  \n`startindex`-->语法: startindex=\\<int\\>, 描述: 默认值为0，表示从所有桶中的第几个桶开始取，前面的桶对应的行将被舍弃  \n  \n`endindex`-->语法: endindex=\\<int\\>, 描述: 默认值为无穷大，表示取到所有桶中的第几个桶，后面的桶对应的行将被舍弃  \n  \n`rendertype`-->语法: rendertype=\\<string\\>, 描述: 用于指定绘图的类型，可选值：line(折线图)，area(面积图)，scatter(散点图)，column(柱状图)"
+            }
+        },
+        "Related commands": "correlation",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "timechart [\\<timechart-params\\>]* \\<stats-single-value-func\\> [\\<stats-single-value-func\\>]* [by \\<field\\> \\<timechart_by_params\\>*] [where \\<expression\\>]",
+        "Example": "示例1:  \n`tag:timechart|eval x = len(tostring(apache.request_path))|timechart sep=\",\" format=\"$VAL**$AGG\" limit=5 bins=10 minspan=1m span=10m max(x) as ma count() as cnt by apache.geo.city`  \n描述: 表示字段分割符为**，组合顺序为byfield值+分隔符+统计字段，限制byfield值为5个进行组合，桶最大个数为10个，最小时间分割桶为1分钟一个，时间分割间隔为10分钟一个时，对raw_message字段长度每个桶取最大值为ma字段，对每个桶出现的事件数进行统计为cnt字段，按照apache.geo.city进行分组后的结果。  \n  \n示例2:  \n`* | timechart sep=\",\" format=\"$VAL**$AGG\" limit=3 rendertype=\"line\" bins=200 minspan=1m span=10m max(delay_time) as ma count() as cnt by apache.status`  \n描述: 表示字段分割符为**，组合顺序为byfield值+分隔符+统计字段，桶最大个数为200个，最小时间分割桶为1分钟一个，时间分割间隔为10分钟一个时，对delay_time字段长度每个桶取最大值为ma字段，对每个桶出现的事件数进行统计为cnt字段，按照apache.status进行分组后绘制成折线图。"
+    },
+    {
+        "Command_Name": "timewrap",
+        "Description": "对timechart命令的结果进⾏显⽰或者折叠，可以使⽤timewrap命令实现指定时间周期的数据的⽐较，⽐如按天或者按⽉。",
+        "Parameters": {
+            "Required": {
+                "timespan": "语法: \\<int\\>\\<timeunit\\>  \n描述: 描述span的时间跨度. 时间单位支持[s, m, h, d, w, M, y]"
+            },
+            "Optional": {
+                "param-options": "语法: \\<align\\> | \\<series\\> | \\<timeformat\\> | \\<timefield\\>  \n参数:  \n`align`-->语法: align = (now | end), 描述: 指定在按照时间范围进⾏折叠的时候，是对⻬到搜索的结束时间点还是当前时间  \n  \n`series`-->语法: series = (relative | exact | short) , 描述: 指定新的列如何被命名，如果series=relative ，并假设timewrap-span 指定为1d，则字段名分别为0days_before, 1days_before ，如果series=exact ，则使⽤timeformat 指定的格式来对列进⾏命名  \n  \n`timeformat`-->语法: timeformat = \\<string\\>, 描述: 如果指定了series=exact，则字段名将按照timeformat来格式化时间戳进⾏命名，例如，指定timeformat= \"yyyy-MM-dd\",则字段名会显⽰为2017-01-01, 2017-01-08  \n  \n`timefield`-->语法: timefield = \\<field\\> | \\<single-quoted-string\\>, 描述: 指定时间字段的字段名，默认为_time"
+            }
+        },
+        "Related commands": "timechart",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "timewrap \\<timespan\\> param-options*",
+        "Example": "示例1: 统计昨天的事件数，并将将上午的数据和下午的数据进行对比  \n`starttime=\"now-1d/d\" endtime=\"now/d\" * | timechart span=1h count() as ct  | timewrap 12h  | eval date=formatdate(_time)`"
+    },
+    {
+        "Command_Name": "top",
+        "Description": "获取字段出现次数前N的值的集合，输出字段包括field  \nNOTE: 由于top支持by多个字段,所以这里会与stats命令中的by字段有同样的字段的限制，详情见stats命令的NOTE中的group.size以及stats.oneby.group_size配置项",
+        "Parameters": {
+            "Required": {
+                "size": "语法: \\<int\\>  \n描述: 返回字段值的个数",
+                "field": "语法: \\<string\\>  \n描述: 需要求top的字段名"
+            },
+            "Optional": {
+                "param-options": "语法: \\<countfield\\> | \\<percentfield\\>  \n参数:  \n`countfield`-->语法: countfield = \\<field\\>, 描述: 默认top会输出count字段(count目前为SPL的关键字)，可通过countfield指定字段名  \n  \n`percentfield`-->语法: percentfield = \\<field\\>, 描述: 默认top会输出percent字段，可通过percentfield指定取代percent的字段名",
+                "by-fieldlist-clause": "语法: by \\<field\\>(,\\<field\\>)*  \n描述: 分组的字段列表，表示先按照field-list分组，在分组内部计算top N的值"
+            }
+        },
+        "Related commands": "rare, stats",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "top \\<size\\> \\<field\\> \\<param-options\\>* [\\<by-fieldlist-clause\\>]",
+        "Example": "示例1: 返回top 3的clientip，同时clientip_count字段表示出现次数，clientip_percent表示所占百分比  \n`* | top 3 apache.clientip countfield=clientip_count percentfield=clientip_percent`  \n  \n示例2: 搜索结果按照request_path进行分组，每个分组内返回top 3的apache.clientip。  \n`* | top 3 apache.clientip by apache.request_path`"
+    },
+    {
+        "Command_Name": "transaction",
+        "Description": "将事件分组成交易  \nNOTE:  \n1. maxopenevents参数对应的最大值默认为100000，对应配置项为: transaction.max_open_events_limit, 该配置项用于限制maxopenevents的这个参数值，如果在语句中指定的该参数的值超过该配置项，则会报错  \n2. maxopenevents参数对应的默认值为50000，对应配置项为transaction.max_open_events, 该配置项为语句中没有指定maxopenevents参数值时，使用的默认参数值",
+        "Parameters": {
+            "Required": {
+                "field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 一个字段或者字段名的列表，事件将根据此字段的值进行分组成各个交易",
+                "txn-definition-opt": "语法: \\<maxspan\\>|\\<maxevents\\>|\\<startswith\\>|\\<endswith\\>|\\<contains\\>|\\<timeshift\\>|\\<keepopentxn\\>|\\<mvlist\\>|\\<mvraw\\>|\\<nullstr\\>|\\<sortfield\\>|\\<keeporphans\\>|\\<maxpause\\>  \n描述: 交易定义选项  \n参数:  \n`maxspan`-->语法: maxspan = \\<int\\>(s|m|h|d), 描述: 交易的事件的时间跨度小于maxspan，可以理解为第一条事件的时间戳和最后一条事件的时间戳的跨度不能大于maxspan  \n  \n`maxevents`-->语法: maxevents = \\<int\\>, 描述: 一个交易中的最大事件个数  \n  \n`startswith`-->语法: startswith = eval(\\<expression\\>)|\\<quoted_string\\>, 描述: 搜索或者eval过滤表达式，如果某个事件满足条件，则标志新交易的开始  \n  \n`endswith`-->语法: endswith = eval(\\<expression\\>)|\\<quoted_string\\>, 描述: 搜索或者eval过滤表达式，如果某个事件满足条件，则标志新交易的结束  \n  \n`contains`-->语法: containes = eval(\\<expression\\>)|\\<quoted_string\\>, 描述: 判断raw_message里是否包含eval或字符串中的值，字符串可以为正则表达式  \n  \n`timeshift`-->语法: timeshift = \\<int\\>(s|m|h|d), 描述: 为解决transaction结束的时间边界问题引入的参数，意思是手动将时间结束节点延后的时间长度  \n  \n`keepopentxn`-->语法: keepopentxn = \\<bool\\>, 描述: 是否将找到end但未找到start的transaction从结果中去掉, 默认值: false，即不保留  \n  \n`mvlist`-->语法: mvlist = \\<bool\\> | \\<field\\>(,\\<field\\>)*, 描述: 指定为bool值时意义为是否将所有字段抽取为单独的多值字段；指定为字段列表时意义为将指定的字段抽取为单独的多值字段  \n  \n`mvraw`-->语法: mvraw = \\<bool\\>, 描述: 表示是否将raw_message字段抽取为一个单独的多值字段, 默认值: false  \n  \n`nullstr`-->语法: nullstr = \\<double-quoted-string\\>, 描述: 抽取为多值字段后结果中为空的元素的替换值， 默认值: \"nullstr\"  \n  \n`sortfield`-->语法: sortfield = [+|-]field,..., 描述: 将一个transaction内的事件按照sortfield指定的顺序进行排列，当指定多个字段时表示第一个字段相等则按第二个字段排序...以此类推, 默认值: +timestamp  \n  \n`keeporphans`-->语法: keeporphans = \\<bool\\>, 描述: 指定事务命令是否应输出不属于任何事务的结果, 默认值: false，即不输出  \n  \n`maxpause`-->语法: maxpause= \\<int\\>(s|m|h|d), 描述: 指定事务中事件之间暂停的最长时间（以秒、分钟、小时或天为单位）。如果值为负，则禁用最大暂停约束，并且没有限制, 默认值: -1，即禁用最大暂停约束，且没有限制"
+            },
+            "Optional": {
+                "memcontrol-opt": "语法: \\<maxopentxn\\> | \\<maxopenevents\\> | \\<keepevicted\\>  \n描述: 内存控制选项  \n参数:  \n`maxopentxn`-->语法: maxopentxn = \\<int\\>, 描述: 维护在内存中的open transaction的个数，采用LRU的策略进行淘汰  \n  \n`maxopenevents`-->语法: maxopenevents = \\<int\\>, 描述: 维护在内存中的open transaction中的events的最大数量，LRU策略淘汰  \n  \n`keepevicted`-->语法: keepevicted = \\<bool\\>, 描述: 是否输出逐出的事务。通过检查“closed_txn”字段的值，可以将逐出的交易与非逐出的交易区分开来。对于已逐出的交易，“closed_txn”字段设置为 “0” 或 false，对于未逐出或已关闭的事务，字段设置为 “1” 或 true。如果满足以下条件之一，则“closed_txn”字段设置为“1”：maxevents，maxpause，maxspan，startswith。对于 startswith，由于事务命令以相反的时间顺序查看事件，因此它会在满足开始条件时关闭事务。如果未指定这些条件，则输出所有事务，即使所有事务都将“closed_txn”设置为“0”。当达到内存限制时，也可以逐出事务。默认值: false，即不输出逐出的事务",
+                "trans-states": "语法: ( \\<trans_states_in_field\\> | \\< trans_states_match\\> ) (results by flow)?  \n描述: 根据transaction中的日志匹配出具体状态，形成transaction的状态流  \n参数:  \n`trans_states_in_field`-->语法: with states \\<field_value\\>(,\\<field_value\\>)* in \\<field\\>, 描述: 将使用field中的字段值，作为状态的值，该字段值必须包含在field_value列表里  \n  \n`trans_states_match`-->语法: \\<trans_state_match\\> (\",\" \\<trans_state_match\\>)*, 描述: 使用trans_state_match列表中的规则对日志进行匹配生成状态  \n[参数: `trans_state_match`-->语法: with \"\\<regex\\>\" (\"in\" \\<field\\>)? as \\<state\\>, 描述: 如果field中的字段值匹配regex成功，则该条日志状态为state]"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "transaction \\<field-list\\> \\<txn-definition-opt\\>* \\<memcontrol-opt\\>* \\<trans-states\\>?",
+        "Example": "示例1: 通过apache.clientip对日志进行关联，按照时间戳排序，包含Receive的日志为一个新的交易的第一条日志，包含Response的为最后一日志，最多包含10条日志，日志的时间跨度最大为5s  \n`logtype:apache |  transaction apache.clientip startswith=\"Android 4.3\" endswith=\"AndroidPhone\" maxopenevents = 10`  \n  \n示例2: 通过apache.clientip对日志关联，每个交易最多包含10条日志，满足apache.status等于200的日志为transaction的第一条日志  \n`logtype:apache |transaction apache.clientip startswith=eval(apache.status==200)  maxopenevents = 10`"
+    },
+    {
+        "Command_Name": "transpose",
+        "Description": "将查询的表格结果进行行列转换  \nNOTE:  \n1. 由于性能的考虑我们该命令最多转换的行数为100000条，对应的配置项为transpose.row_limit，如果需要转换更多的行，则修改该配置项即可。  \n2. 由于性能的考虑我们行列转换后的结果的最大列数为500，对应的配置项为transpose.column_limit，如果需要转换后的结果的列数更多，则修改该配置项即可。",
+        "Parameters": {
+            "Required": {
+                "transpose-row": "语法: row=\\<field-list\\>  \n描述: 用于识别新生成的行的关键字，相同的row的字段值的原表格将被合并成同一行  \n参数:  \n`field-list`-->语法: \\<field\\>(,\\<field\\>)*, 描述: 字段列表",
+                "transpose-column": "语法: column=\\<field-list\\>  \n描述: 该字段包含的值将被作为新的字段标签  \n参数:  \n`field-list`-->语法: \\<field\\>(,\\<field\\>)*, 描述: 字段列表",
+                "transpose-valueField": "语法: valueField=\\<field-list\\>  \n描述: 该字段的值将被用于表示新生成表格中对应的值  \n参数:  \n`field-list`-->语法：\\<field\\>(,\\<field\\>)*, 描述: 字段列表"
+            },
+            "Optional": {
+                "transpose-count": "语法: \\<int\\>  \n描述: 表示有多少行将被用于做转换"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "transpose [transpose-count] \\<transpose-row\\> \\<transpose-column\\> \\<transpose-valueField\\>",
+        "Example": "示例: 将统计结果进行transpose，row字段为apache.method,column字段为apache.status, value字段为cnt  \n`* | stats count() as cnt by apache.method, apache.status | transpose row=apache.method column=apache.status valuefield=cnt`"
+    },
+    {
+        "Command_Name": "unpivot",
+        "Description": "行转列操作  \nNOTE: 默认最大可操作行的限制为500，由配置项unpivot.row_size控制",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "count": "语法: \\<int\\>  \n描述: 可操作的原始结果行数",
+                "param-options": "语法: \\<column-name\\> | \\<header-field\\>  \n参数:  \n`column-name`-->语法: column_name = \\<string\\>, 描述: 新生成的结果的首列名称，可以带双引号也可不带  \n  \n`header-field`-->语法: header_field = \\<field\\>, 描述: 新生成的结果中，除首列外，其余列名称对应原始结果中该列的内容"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "转换命令",
+        "Supported functions and syntax": "unpivot [\\<count\\>] \\<param-options\\>*",
+        "Example": "示例1: 将统计结果直接进行行列转换  \n`* | unpivot`  \n  \n示例2: 将统计结果进行行列转换，并指定新列名对应的原始列名字段  \n`* | unpivot header_field = group`  \n  \n示例3: 将统计结果进行行列转换，指定可操作的原始行数，原始列对应的名称，以及新列对应的原始字段。  \n`* | unpivot 2 column_name=aaa header_field=group`"
+    },
+    {
+        "Command_Name": "where",
+        "Description": "使用表达式对结果进行过滤",
+        "Parameters": {
+            "Required": {
+                "expression": "语法: \\<expression_function\\>  \n描述: 参考eval命令的表达式，但where要求表达式计算结果应该为布尔类型，如果返回true则不过滤当前行的结果，否则任意其他值该行将被过滤掉。"
+            },
+            "Optional": {
+                "in-func": "语法: in(x [,y]...)  \n描述: 给定一个字段和若干指定值，判断字段中的值是否在指定值中存在"
+            }
+        },
+        "Related commands": "eval",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "where \\<expression\\> | \\<field\\> \\<in-func\\>",
+        "Example": "示例: 筛选出所有apache格式且日志中的城市为深圳市的日志后，按照访问路径request_path分组，对每个组求出访问的不同clientip个数，并限制不同的ip数在40到100范围  \n`logtype:apache AND apache.geo.city:\"深圳市\" |  stats dc(apache.clientip) as dc_count by apache.request_path | where dc_count \\> 40 && dc_count \\< 100`"
+    },
+    {
+        "Command_Name": "xpath",
+        "Description": "提供对xml数据的处理和抽取",
+        "Parameters": {
+            "Required": {
+                "path": "语法: \\<string\\>  \n描述: xpath描述的路径",
+                "output": "语法: \\<field\\>  \n描述: 指定输出字段"
+            },
+            "Optional": {
+                "input": "语法: \\<field\\>  \n描述: 指定抽取的字段，默认为raw_message",
+                "default_value": "语法: \\<string\\>  \n描述: 当抽出的值为空时默认填充的值"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "xpath [input=\\<field\\>] output=\\<field\\> path=\\<string\\> [default_value=\\<string\\>]",
+        "Example": "示例: 在搜索appname:lyxpath的结果中，抽取字段json.xp中路径为/purchases/book/title的对应的信息写出到lyly字段中  \n`appname:lyxpath | xpath input=json.xp output=lyly path=\"/purchases/book/title\"`"
+    },
+    {
+        "Command_Name": "replace",
+        "Description": "使用指定字符串替换字段值，可以指定一个或多个字段，仅替换指定字段的值，如果没有指定字段，则替换所有字段",
+        "Parameters": {
+            "Required": {
+                "value-item": "语法: \\<source-String\\> with \\<target-String\\>  \n描述: 用\\<target-String\\>替换\\<source-String\\> , 支持通配符*以匹配多个字段值,如果\\<source-string\\>和\\<target-string\\>都含有通配符，则根据*的位置，调整字符串顺序"
+            },
+            "Optional": {
+                "field-list": "语法: \\<field\\> ( , \\<field\\>)*  \n描述: 指定要替换值的字段，可以指定一个或多个。如果不指定，则替换全部字段"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "replace value-item [,value-item]* [IN \\<field-list\\>]",
+        "Example": "示例1: 将所有值为\"192.168.1.1\"的字段值替换为\"localhost\"  \n` * | replace \"192.168.1.1\" with \"localhost\"`  \n  \n示例2: 调整manufacture字段值的顺序，从以\"log\"开头，调整为以\"log\"结尾  \n`* | replace \"log*\" with \"*log\" in manufacture`  \n  \n示例3: 调整fruit,fruit1字段值的顺序，如果字段值以a开头e结尾，且中间有字符，则把该字段值替换为\"apple\"  \n` * | replace \"a*e\" with \"apple\" in fruit,fruit1`"
+    },
+    {
+        "Command_Name": "makemv",
+        "Description": "使用分隔符或者带捕获组的正则表达式，将单值字段转换为多值字段。",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<field\\>  \n描述: 指定一个要转换成多值的字段。"
+            },
+            "Optional": {
+                "delim": "语法: delim=\\<string\\>  \n描述: 指定一个分隔符。在字符串中每遇到一次delim，就做一次分割。",
+                "tokenizer": "语法: tokenizer=\\<string\\>  \n描述: 指定一个带捕获组的正则表达式。每当匹配到一个子串，就用这次匹配的第一个捕获组来创建多值字段的值。",
+                "allowempty": "语法: allowempty=\\<bool\\>  \n描述: 当使用delim作为分割符时，允许结果中出现空字符串。allowempty对于tokenizer无效。"
+            }
+        },
+        "Related commands": "mvcombine, mvexpand",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "makemv [delim=\\<string\\> | tokenizer=\\<string\\>] [allowempty=\\<bool\\>] \\<field\\>",
+        "Example": "示例1: 使用分隔符将字符串\"a,b,c\"用逗号分割，结果为[\"a\",\"b\",\"c\"]  \n`*|eval testmv=\"a,b,c\"|makemv delim=\",\" testmv`  \n  \n示例2: 使用正则表达式 (),? 将字符串\"aaa,..bb,c\"分割，结果取第一个捕获组 ([^,]) 对应的值,最终结果为[\"aaa\",\"..bb\",\"c\"]  \n`*|eval testmv=\"aaa,..bb,c\"|makemv tokenizer=\"([^,]+),?\" testmv` \n \n示例3: 使用分隔符将字符串\"a,,,b,c\"用逗号分割，保留空值,最终结果为[\"a\",\"\",\"\",\"b\",\"c\"]  \n`*|eval testmv=\"a,,,b,c\"|makemv delim=\",\" allowempty=true testmv`"
+    },
+    {
+        "Command_Name": "localop",
+        "Description": "localop命令强制随后的命令都在spl单机执行",
+        "Parameters": {
+            "Required": {},
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "localop",
+        "Example": "示例: 如果没有localop，这条语句中的eval命令会在分布式引擎执行；加上localop之后，这条语句中的eval命令以及随后的命令都在spl单机执行  \n`* | localop | eval a=123`"
+    },
+    {
+        "Command_Name": "strcat",
+        "Description": "连接来自2个或更多字段的值。将字段值和指定字符串组合到一个新字段中",
+        "Parameters": {
+            "Required": {
+                "source-field": "语法: \\<field\\> | \\<quoted-str\\>  \n描述: 指定要连接的字段名称或者带双引号的字符串",
+                "dest-field": "语法: \\<field\\>  \n描述: 指定目标字段的名字，用来保存连接后的结果。目标字段要出现在源字段的后面"
+            },
+            "Optional": {
+                "allrequired": "语法: allrequired = \\<bool\\>  \n描述: 指定每个事件中是否需要所有源字段都存在。如果为allrequired=false，则不存在的源字段将被视为空字符串。如果为allrequired=true，则仅当所有源字段都存在时，才将值写入目标字段。默认为false"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "strcat [allrequired=\\<bool\\>] \\<source-field\\>+ \\<dest-field\\>",
+        "Example": "示例1: 把字段field1，字符串\"abcd\"，字段field2连接，存到字段strcatresult中  \n` * |eval field1=\"10.192.1.1\",field2=\"192.168.1.1\" |strcat field1 \"abcd\" field2 strcatresult`  \n  \n示例2: 把一个存在的字段field1和一个不存在的字段field3连接，用allrequired=true要求所有源字段都存在。结果中不会有strcatresult字段  \n`* |eval field1=\"10.192.1.1\",field2=\"192.168.1.1\" |strcat allrequired=true field1 field3 strcatresult`  \n  \n示例3: 把一个集合类型的字段field1和字符串\"abcd\"连接，用allrequired=true要求所有源字段都存在。由于field1是一个空集合，结果中不会有strcatresult字段。  \n` * |eval field1=split(\"\",\".\")|strcat allrequired=true field1 \"abcd\" strcatresult`"
+    },
+    {
+        "Command_Name": "loadjob",
+        "Description": "加载先前完成的定时任务或告警的执行结果。由ID 和type唯一确定一个任务。如果最近一次时间点的结果不存在，则临时运行原始查询。",
+        "Parameters": {
+            "Required": {
+                "id": "语法: id=\\<int\\>  \n描述: 指定一个定时任务或告警的id。",
+                "type": "语法: type=\\<quoted-string\\>  \n描述: 指定job类型，目前我们只支持\"savedschedule\"。"
+            },
+            "Optional": {
+                "artifact-offset": "语法: artifact_offset=\\<int\\>  \n描述: 选择加载最近执行的第几条结果。例如，如果 artifact_offset=1，则将加载最近执行完成的第二条结果。如果artifact_offset=2，将加载第三个最近的结果。如果artifact_offset=0，则加载最新的执行结果。"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "| loadjob \\<id\\> ,\\<type\\> [\\<artifact-offset\\>]",
+        "Example": "示例: 加载id为1的定时任务的最近一次结果。  \n`| loadjob id=1,type=\"savedschedule\"`"
+    },
+    {
+        "Command_Name": "accum",
+        "Description": "对每个事件中为数字的指定字段进行逐次累加，得到的累加结果会放入该字段或者新字段中。",
+        "Parameters": {
+            "Required": {
+                "field": "语法: \\<field\\> | \\<single-quoted-string\\>  \n描述: 累加字段，该字段必须包含数字。"
+            },
+            "Optional": {
+                "new-field": "语法: \\<field\\> | \\<single-quoted-string\\>  \n描述: 新字段，会将累加的结果放入该字段，如果不指定该字段，会将累加结果放入累加字段。"
+            }
+        },
+        "Related commands": "autoregress, streamstats",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "accum \\<field\\> [as \\<new-field\\>]",
+        "Example": "示例: 对于每一个事件，会计算从第一个事件开始，到当前事件为止到所有响应长度的和，并将该值保存在sum_resp_len字段中。  \n`logtype:apache | accum apache.resp_len as sum_resp_len`"
+    },
+    {
+        "Command_Name": "untable",
+        "Description": "table指令的逆操作，使用该指令可以将表格的查看方式转换到事件列表的查看方式。",
+        "Parameters": {
+            "Required": {},
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "流式命令",
+        "Supported functions and syntax": "untable",
+        "Example": "示例: 以事件列表的查看方式显示，该条指令等价于：\"*\"  \n`* | table * | untable`"
+    },
+    {
+        "Command_Name": "rest",
+        "Description": "调用日志易API，返回对应结果",
+        "Parameters": {
+            "Required": {
+                "apikey_field": "语法: apikey=\\<string\\>  \n描述: API密钥",
+                "url_path": "语法: \\<url_path\\>  \n描述: 请求日志易的API地址"
+            },
+            "Optional": {
+                "count_field": "语法: count=\\<number\\>  \n描述: 返回的最大结果数。若不指定或指定为0，则代表不限制",
+                "timeout_field": "语法: timeout=\\<number\\>  \n描述: 指定API请求的超时时间，单位为秒。若不指定或指定为0，则使用默认超时时间60s",
+                "rest_field": "语法: \\<field\\>=\\<field_value\\>  \n描述: API请求的参数内容",
+                "field_value": "语法: \\<field\\> | \\<string\\> | \\<number\\>  \n描述: 请求参数值"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "rest \\<url_path\\> \\<apikey_field\\> [count_field] [timeout_field] [rest_field]",
+        "Example": "示例1: 调用日志易API，获取所有可见的AgentGroup列表，限制返回结果数为2  \n`|rest /agentgroup/ apikey=\"user apikey\" count=2`  \n  \n示例2: 调用日志易API，获取所有可见的应用名称包含a的应用列表  \n`|rest /apps/ apikey=\"user apikey\" name__contains=\"a\"`"
+    },
+    {
+        "Command_Name": "typeahead",
+        "Description": "返回指定前缀的字段信息。返回的最大结果数取决于为size参数指定的值。typeahead命令可以以指定索引为目标，并受时间限制。",
+        "Parameters": {
+            "Required": {
+                "prefix_field": "语法: prefix=\\<string\\>  \n描述: 字段前缀，也可以选择通过【字段:字段值前缀】来根据字段值前缀提示该字段相应的字段值"
+            },
+            "Optional": {
+                "size_field": "语法: size=\\<number\\>  \n描述: 返回的最大结果数",
+                "index_field": "语法: index=\\<field-list\\>  \n描述: 指定索引来替代默认索引",
+                "field-list": "语法: \\<field\\>[,\\<field\\>]*  \n描述: 索引字段列表"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "\\<prefix_field\\> [size_field] [index_field]",
+        "Example": "示例1: 返回以app为前缀的字段信息，指定索引为yotta，限制返回条数为5。  \n`|typeahead prefix=\"app\" size=5 index=yotta`  \n  \n示例2: 返回app字段中以a开头的字段值。  \n`|typeahead prefix=\"app:a\"`"
+    },
+    {
+        "Command_Name": "history",
+        "Description": "查看当前用户的搜索历史，拥有admin角色权限的用户可以查看所有用户的搜索历史",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "showall": "语法: showall=\\<bool\\>  \n描述: 取值true会展示所有用户的搜索历史（只针对admin有效），默认为false",
+                "onlysearch": "语法: onlysearch=\\<bool\\>  \n描述: 取值true只展示来自前台界面搜索的历史，不会展示告警、定时任务等非界面搜索历史，默认为false",
+                "onlyapp": "语法: onlyapp=\\<bool\\>  \n描述: 取值true只展示当前app的搜索历史，默认为false",
+                "events": "语法: events=\\<bool\\>  \n描述: 取值true时以事件列表的形式展示搜索历史，默认为false，即以表格形式展示搜索历史"
+            }
+        },
+        "Related commands": "",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "history [showall | onlysearch | onlyapp | events]*",
+        "Example": "示例1: 查看该用户今天的前台搜索历史。  \n`| history onlysearch=true`  \n  \n示例2: 查看今天所有用户的搜索次数。  \n`| history showall=true  | stats count() by spl.user_id`"
+    },
+    {
+        "Command_Name": "addcoltotals",
+        "Description": "将新结果附加到搜索结果集的末尾。结果包含每个数字字段的总和，也可以指定要汇总的字段。",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "field-list": "语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*  \n描述: 要汇总的字段是以逗号或者空格分割的字段列表，支持通配符",
+                "labelfield": "语法: labelfield = \\<string\\>  \n描述: 追加到结果集中的列名",
+                "label": "语法: label = \\<string\\>  \n描述: 与labelfield一起在新增的列中添加标签，当labelfield参数不存在时，该参数无意义"
+            }
+        },
+        "Related commands": "addtotals, stats",
+        "Type of function": "生成命令",
+        "Supported functions and syntax": "addcoltotals [\\<field-list\\>] [labelfield] [label]",
+        "Example": "示例1: 计算所有字段的总和，并将总和放入结果集中，并添加列名为change_name的新列，标签名为ALL。  \n`* | stats count() by ip | addcoltotals labelfield=change_name label=ALL`  \n  \n示例2: 指定计算列alert.d*，monitor.check_interval 其余数值列均不计算  \n`index=lunaxee * | fields alert.duration_time,monitor.check_interval,alert.domain_id,alert.owner_id | addcoltotals alert.d*,monitor.check_interval`"
+    },
+    {
+        "Command_Name": "addtotals",
+        "Description": "为每个搜索结果计算所有数值字段的算术和。可以指定需要求和的字段列表。设置col=true时，在末尾添加计算出的新结果表示字段的列和。",
+        "Parameters": {
+            "Required": {},
+            "Optional": {
+                "addtotals-param": "语法: \\<row\\> | \\<col\\> | \\<labelfield\\> | \\<label\\> | \\<fieldname\\> | [\\<field_list\\>]  \n描述: 决定求和行为是行求和/列求和/行列求和，指定求和行/列的名称，对求和的行/列进行匹配。  \n参数:  \n`row`-->语法: row = \\<bool\\>, 描述: 指定是否为每个事件计算\\<字段列表\\>的和。总和被放置在一个新的字段中。row的默认值为true。  \n  \n`col`-->语法: col = \\<bool\\>, 描述: 指定是否在事件列表的底部添加列和。col的默认值为false。  \n  \n`labelfield`-->语法: labelfield = \\<field\\>, 描述: 用于给求列和的结果指定显示字段，该参数仅在col=true时有效。如果结果集中没有指定的字段，则添加一个新字段。  \n  \n`label`-->语法: label = \\<string\\>, 描述: 用于为列和指定行标签。如果labelfield参数是结果集中已经存在的字段，标签将出现在该列下；如果labelfield参数创建了一个新字段，标签将出现在新字段的列下。默认值为Total。  \n  \n`fieldname`-->语法: fieldname = \\<field\\>, 描述: 用于指定行求和字段的名称。该参数仅在row=true时有效。默认值为Total。  \n  \n`field_list`-->语法: \\<field\\>(,\\<field\\>)* | \\<single-quoted-string\\>(,\\<single-quoted-string\\>)*, 描述: 一个或多个用空格分隔的数字字段。如果该参数不为空时，则只有指定的字段被求和。如果该参数为空，则对所有行的数值字段求和。"
+            }
+        },
+        "Related commands": "addcoltotals, stats",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "addtotals \\<addtotals-param\\>*",
+        "Example": "示例1: 同时求行、列和。列和显示在appname字段下且列和名称为Col Total，行和名称为Row Total。  \n描述: * | eval a=123 | stats count() by appname,a  | addtotals col=true labelfield=appname label=\"Col Total\"  fieldname=\"Row Total\"  \n  \n示例2: 计算字段名中包含p或以b开头的字段和，并在名为TotalAmount的字段中保存总和。  \n`* | eval b=123 | eval app=456 | eval ab=11 | stats count() by appname,b,app,ab  | addtotals *p*,b*`"
+    },
+    {
+        "Command_Name": "multireport",
+        "Description": "multireport 指令可以对同一数据流做不同的处理，最后汇聚输出。",
+        "Parameters": {
+            "Required": {},
+            "Optional": {}
+        },
+        "Related commands": "",
+        "Type of function": "其他命令",
+        "Supported functions and syntax": "multireport \\<sub-pipeline\\>*",
+        "Example": "示例: 对命中对数据，进行两种不同的处理，把k为偶数的事件的v设置为0，把k为奇数的事件的v设置为1  \n`*|limit 10|streamstats count() as _c |multireport [[| where _c%2==0|eval v=0]] [[| where _c%2==1|eval v=1]]|table _c,v`"
+    }
+]

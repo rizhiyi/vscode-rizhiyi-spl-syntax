@@ -102,7 +102,7 @@
     "chart [<chart-params>]* <stats-single-value-func> [<stats-single-value-func>]* [over <field> <chart-over-params>*] [by <field> <chart-by-params>*]": {
         "prefix": "chart",
         "body": [
-            "chart ${1| ,sep=,format=,cont=,limit=,rendertype=}  ${2| ,bins=,span=,startindex=,endindex=} ${3|avg,min,max,sun,count,distinct_count,first,last,earliest,latest,rate,exact_dc,sumsq,var,stddev,mad|}() ",
+            "chart ${1| ,sep=,format=,cont=,limit=,rendertype=|}  ${2| ,bins=,span=,startindex=,endindex=|} ${3|avg,min,max,sun,count,distinct_count,first,last,earliest,latest,rate,exact_dc,sumsq,var,stddev,mad|}() ",
             ""
         ],
         "description": "按照over字段进行分桶后的统计行为"
@@ -134,7 +134,7 @@
     "dbxexec <connection> <param-options>* <query> [<params>]": {
         "prefix": "dbxexec",
         "body": [
-            "dbxexec connection=\"${0}\" connection=\"${1}\"",
+            "dbxexec connection=\"${1}\" connection=\"${2}\"",
             ""
         ],
         "description": ""
@@ -158,7 +158,7 @@
     "dbxquery connection <dbx-params>* <dbx-query-procedure> [ params=<string>[,<string>]* ]": {
         "prefix": "dbxquery",
         "body": [
-            "dbxquery connection=\"${0}\" query=\"${1}\"",
+            "dbxquery connection=\"${1}\" query=\"${2}\"",
             ""
         ],
         "description": "是一个可以使用sql来查远程数据库的数据并作为spl的查询语句的命令（不支持跨库联查，如果要使用两个库的话可以使用append，join等）"

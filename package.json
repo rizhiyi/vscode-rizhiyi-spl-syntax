@@ -2,7 +2,7 @@
   "name": "rizhiyi-spl-extension",
   "displayName": "Rizhiyi Search Syntax Highlighter Formatter",
   "description": "日志易SPL语法高亮、代码提示以及格式化插件",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "publisher": "rizhiyi",
   "engines": {
     "vscode": "^1.90.0"
@@ -13,9 +13,9 @@
     "Formatters"
   ],
   "repository": {
-		"type": "git",
-		"url": "https://github.com/rizhiyi/vscode-rizhiyi-spl-syntax.git"
-	},
+    "type": "git",
+    "url": "https://github.com/rizhiyi/vscode-rizhiyi-spl-syntax.git"
+  },
   "icon": "assets/icon.png",
   "galleryBanner": {
     "color": "#1e1e1e",

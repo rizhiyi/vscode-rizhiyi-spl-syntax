@@ -1,6 +1,6 @@
 <h1 align="center"> 日志易SPL语法高亮VSCode插件 </h1>
 
-![](https://s3.yaourt.cn/img/windows/2024/06/21/202406212230051.gif)
+![](https://s3.yaourt.cn/img/windows/2024/07/18/202407181442241.gif)
 
 # 特点
 
@@ -18,6 +18,9 @@
 
   ![image-20240621215706848](https://s3.yaourt.cn/img/windows/2024/06/21/202406212157904.png)
 
+- 300+SPL命令的语法说明提示
+
+  ![](https://s3.yaourt.cn/img/windows/2024/07/18/202407181445539.png)
   
 
 # 快捷键绑定
@@ -36,4 +39,4 @@
 
 2. 按照下图方式操作即可
 
-   ![image-20240623093219986](https://s3.yaourt.cn/img/windows/2024/06/23/image-20240623093219986.png)
+  ![](https://s3.yaourt.cn/img/windows/2024/07/18/202407181446613.png)

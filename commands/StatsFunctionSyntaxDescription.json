@@ -1,0 +1,243 @@
+[
+    {
+        "Command_Name": "avg", 
+        "Description": "返回字段X的平均值",
+        "Example": "返回平均响应时间:  \navg(response_time)",
+        "Supported functions and syntax": "avg(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "count", 
+        "Description": "返回字段X的出现次数", 
+        "Example": "返回status的个数:  \ncount(status)",
+        "Supported functions and syntax": "count[(X)]", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "date_histogram", 
+        "Description": "时间直方图统计，可以认为是直方图统计的一种特殊形式", 
+        "Example": "把timestamp字段以1h分桶统计:  \ndhg(timestamp, 1h)",
+        "Supported functions and syntax": "date_histogram(X, INTERVAL)", 
+        "Type of function": "画图函数"
+    },{
+        "Command_Name": "dhg", 
+        "Description": "时间直方图统计，可以认为是直方图统计的一种特殊形式", 
+        "Example": "把timestamp字段以1h分桶统计:  \ndhg(timestamp, 1h)",
+        "Supported functions and syntax": "dhg(X, INTERVAL)", 
+        "Type of function": "画图函数"
+    },{
+        "Command_Name": "distinct", 
+        "Description": "返回字段X的值去重后的的个数的精准值", 
+        "Example": "返回字段clientip的唯一值值的个数的精确值:  \ndistinct(clientip)",
+        "Supported functions and syntax": "distinct(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "distinct_count", 
+        "Description": "返回字段X的值去重后的个数的估计值", 
+        "Example": "返回clientip的唯一值值的个数的估计值:  \ndistinct_count(clientip)",
+        "Supported functions and syntax": "distinct_count(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "estdc", 
+        "Description": "返回字段X的值去重后的个数的估计值", 
+        "Example": "返回clientip的唯一值值的个数的估计值:  \nestdc(clientip)",
+        "Supported functions and syntax": "estdc(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "dc", 
+        "Description": "返回字段X的值去重后的个数的估计值", 
+        "Example": "返回clientip的唯一值值的个数的估计值:  \ndc(clientip)",
+        "Supported functions and syntax": "dc(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "earliest", 
+        "Description": "返回字段X按照时间增序排序后的第一个值", 
+        "Example": "返回appname字段按照时间增序排序后的第一个值:  \nearliest(appname)",
+        "Supported functions and syntax": "earliest(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "extend_stat", 
+        "Description": "返回字段X的es扩展统计  \nes将返回多个值，将返回如下字段：  \n_es.X.count  \n_es.X.min  \n_es.X.max  \n_es.X.avg  \n_es.X.sum  \n_es.X.sum_of_squares  \n_es.X.variance  \n_es.X.std_deviation", 
+        "Example": "返回resp_len字段的es统计值：  \nes(resp_len)",
+        "Supported functions and syntax": "extend_stat(X)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "es", 
+        "Description": "返回字段X的es扩展统计  \nes将返回多个值，将返回如下字段：  \n_es.X.count  \n_es.X.min  \n_es.X.max  \n_es.X.avg  \n_es.X.sum  \n_es.X.sum_of_squares  \n_es.X.variance  \n_es.X.std_deviation", 
+        "Example": "返回resp_len字段的es统计值：  \nes(resp_len)",
+        "Supported functions and syntax": "es(X)", 
+        "Type of function": "其他函数"
+    },{
+        "Command_Name": "first", 
+        "Description": "返回数据中字段X的第一个出现的值", 
+        "Example": "返回第一个appname的值：  \nfirst(appname)",
+        "Supported functions and syntax": "first(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "histogram", 
+        "Description": "直方图统计。字段X必须为整数类型", 
+        "Example": "把apache.status以200分桶统计：  \nhistogram(apache.status, 200)",
+        "Supported functions and syntax": "histogram(X, INTERVAL)", 
+        "Type of function": "画图函数"
+    },{
+        "Command_Name": "hg", 
+        "Description": "直方图统计。字段X必须为整数类型", 
+        "Example": "把apache.status以200分桶统计：  \nhg(apache.status, 200)",
+        "Supported functions and syntax": "hg(X, INTERVAL)", 
+        "Type of function": "画图函数"
+    },{
+        "Command_Name": "last", 
+        "Description": "返回字段X的最后一个出现的值", 
+        "Example": "返回数据中最后一个appname的值：  \nlast(appname)",
+        "Supported functions and syntax": "last(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "latest", 
+        "Description": "返回字段X按照时间增序排序后的最后一个值", 
+        "Example": "返回数据中的appname字段按照时间增序排序后的最后一个值：  \nlatest(appname)",
+        "Supported functions and syntax": "latest(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "list", 
+        "Description": "将字段X的值组合成列表返回。  \nLIMIT为值列表中值的个数上限，默认值为100", 
+        "Example": "以下示例返回数据中appname出现的前90个值：  \n*|stats list(appname,90)",
+        "Supported functions and syntax": "list(X,[LIMIT])", 
+        "Type of function": "其他函数"
+    },{
+        "Command_Name": "mad", 
+        "Description": "此函数将统计指定字段的绝对中位差(MAD)值", 
+        "Example": "下示例返回响应时间的绝对中位差(MAD)值:   \nstats mad(response_time)",
+        "Supported functions and syntax": "mad(X)", 
+        "Type of function": "其他函数"
+    },{
+        "Command_Name": "max", 
+        "Description": "返回字段X的最大值, 字段X必须为数值类型", 
+        "Example": "返回响应时间的最大值：  \nmax(response_time)",
+        "Supported functions and syntax": "max(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "min", 
+        "Description": "返回字段X的最小值, 字段X必须为数值类型", 
+        "Example": "返回响应时间的最小值：  \nmin(response_time)",
+        "Supported functions and syntax": "min(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "percentiles", 
+        "Description": "返回字段X的值排序后，百分位Y1, Y2所对应的字段值。  \npct将返回多个值，字段命名方式如下：  \nY1对应的字段为_pct.X.Y1  \nY2对应的字段为_pct.X.Y2", 
+        "Example": "返回response_time在50%，75%, 95%分位的值：pct(response_time, 50, 75, 95)。将返回三个字段：  \n_pct.response_time.50  \n_pct.response_time.75  \n_pct.response_time.95",
+        "Supported functions and syntax": "percentiles(X, Y1, Y2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "pct", 
+        "Description": "返回字段X的值排序后，百分位Y1, Y2所对应的字段值。  \npct将返回多个值，字段命名方式如下：  \nY1对应的字段为_pct.X.Y1  \nY2对应的字段为_pct.X.Y2", 
+        "Example": "返回response_time在50%，75%, 95%分位的值：pct(response_time, 50, 75, 95)。将返回三个字段：  \n_pct.response_time.50  \n_pct.response_time.75  \n_pct.response_time.95",
+        "Supported functions and syntax": "pct(X, Y1, Y2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "percentile_ranks", 
+        "Description": "返回Y1，Y2所对应的百分位。  \nX： 数值类型字段;   \nY1，Y2： 为字段X对应的值;   \npct_ranks将返回多个值，字段命名方式如下：  \n_pct_ranks.X.Y1  \n_pct_ranks.X.Y2  \n...", 
+        "Example": "以下示例返回100， 200， 500在response_time字段中对应的百分位：  \npct_ranks(response_time, 100, 200, 500) 返回字段集合：  \n_pct_ranks.response_time.100  \n_pct_ranks.response_time.200  \n_pct_ranks.response_time.500",
+        "Supported functions and syntax": "percentile_ranks(X, Y1, Y2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "pct_ranks", 
+        "Description": "返回Y1，Y2所对应的百分位。  \nX： 数值类型字段;   \nY1，Y2： 为字段X对应的值;   \npct_ranks将返回多个值，字段命名方式如下：  \n_pct_ranks.X.Y1  \n_pct_ranks.X.Y2  \n...", 
+        "Example": "以下示例返回100， 200， 500在response_time字段中对应的百分位：  \npct_ranks(response_time, 100, 200, 500) 返回字段集合：  \n_pct_ranks.response_time.100  \n_pct_ranks.response_time.200  \n_pct_ranks.response_time.500",
+        "Supported functions and syntax": "pct_ranks(X, Y1, Y2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "range_bucket", 
+        "Description": "X：为数值类型  \nRANGE_BUCKET：统计区间，表示为(start, end)。可以设置多个。", 
+        "Example": "以下示例把apache.status以指定区间分桶统计：  \nrb(apache.status,(100,200) , (200,300), (300,400))",
+        "Supported functions and syntax": "range_bucket(RANGE_BUCKET, RANGE_BUCKET…​)", 
+        "Type of function": "画图函数"
+    },{
+        "Command_Name": "rb", 
+        "Description": "X：为数值类型  \nRANGE_BUCKET：统计区间，表示为(start, end)。可以设置多个。", 
+        "Example": "以下示例把apache.status以指定区间分桶统计：  \nrb(apache.status,(100,200) , (200,300), (300,400))",
+        "Supported functions and syntax": "rb(RANGE_BUCKET, RANGE_BUCKET…​)", 
+        "Type of function": "画图函数"
+    },{
+        "Command_Name": "rate", 
+        "Description": "此函数将统计在指定时间跨度内指定字段值的变化速率。  \n具体计算方法：(latest - earliest) / (latestT - earliestT)  \nlatest为字段X按照时间增序排序后的最后一个值  \nearliest为字段X按照时间增序排序后的第一个值  \nlatestT为latest对应的timestamp  \nearliestT为earliest对应的timestamp", 
+        "Example": "返回数据中apache.resp_len值的变化速率：  \n*|stats rate(apache.resp_len)",
+        "Supported functions and syntax": "rate(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "sparkline", 
+        "Description": "按照指定区间分桶，通过面积图展示每个分桶内统计数据。  \nagg：部分与stats有关的函数，支持所有的single函数", 
+        "Example": "返回按1h分桶，按tag分类后，apache.resp_len的平均值对应的面积图：  \nstats sparkline(avg(apache.resp_len), 1h) by tag",
+        "Supported functions and syntax": "sparkline(agg(X), INTERVAL)", 
+        "Type of function": "画图函数"
+    },{
+        "Command_Name": "stddev", 
+        "Description": "统计字段X的标准差, 字段X必须为数值类型", 
+        "Example": "返回响应时间的标准差：  \nstats stddev(response_time)",
+        "Supported functions and syntax": "stddev(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "sum", 
+        "Description": "返回字段X的值的和, 字段X必须为数值类型", 
+        "Example": "返回响应长度的和：  \nsum(response_len)",
+        "Supported functions and syntax": "sum(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "sumsq", 
+        "Description": "统计字段X的平方和, 字段X必须为数值类型", 
+        "Example": "返回响应时间的平方和：  \nstats sumsq(response_time)",
+        "Supported functions and syntax": "sumsq(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "signify", 
+        "Description": "返回指定字段中有趣或不寻常的字段值的集合，并按照重要性排序。 字段值的重要性取决于score的大小。  \n示例： 用户在文本中搜索“禽流感”时提示“H5N1”；  \n发现欺诈性医生诊断出的鞭伤伤害超过了他们的公平份额；  \n发现爆胎次数不成比例的轮胎制造商。  \n  \n在所有这些情况下，所选择的术语不仅仅是一组中最流行的术语。 它们是在前景和背景集之间测量的流行度发生显着变化的术语。 如果术语“H5N1”仅存在于 1000 万个文档索引中的 5 个文档中，但在构成用户搜索结果的 100 个文档中的 4 个中找到，这些文档很重要并且可能与他们的搜索非常相关。 5/10,000,000 对 4/100 是一个很大的频率摆动。  \n  \n打分的原理是根据foregroundPercent(目标术语在前景集所占的百分比)与backgroundPercen(目标术语在背景集所占的百分比)计算得分，  \n前景集：与查询直接匹配的搜索结果；  \n背景集：从中检索它们的索引；  \n目标术语：用户感兴趣的、重要的术语 重要术语聚合的任务是比较这些集合并找到最常与用户查询关联的术语。  \n  \n  \nLIMIT默认值为10。", 
+        "Example": "返回目标字段appname对应的值中最重要的10个。此例中appname为前景集，query语句查询的内容为背景集，返回的结果为目标术语。  \n*|stats signify(appname,10)",
+        "Supported functions and syntax": "signify(X,[LIMIT])", 
+        "Type of function": "其他函数"
+    },{
+        "Command_Name": "top", 
+        "Description": "此函数统计字段X内最多出现的若干个值", 
+        "Example": "返回apache.status使用最多的三个值及其对应使用的次数：  \ntop(apache.status, 3)",
+        "Supported functions and syntax": "top(X, LIMIT)", 
+        "Type of function": "其他函数"
+    },{
+        "Command_Name": "values", 
+        "Description": "返回字段X去重后的值。LIMIT默认值为100", 
+        "Example": "以下示例返回数据中appname出现的前90个不重复的值：  \n*|stats values(appname,90)",
+        "Supported functions and syntax": "values(X,[LIMIT])", 
+        "Type of function": "其他函数"
+    },{
+        "Command_Name": "var", 
+        "Description": "统计字段X的方差, 字段X必须为数值类型", 
+        "Example": "返回响应时间的方差：  \nstats var(response_time)",
+        "Supported functions and syntax": "var(X)", 
+        "Type of function": "single函数"
+    },{
+        "Command_Name": "skewness", 
+        "Description": "返回字段X1, X2…​的偏度，字段X1, X2…​必须为数值类型，该函数支持多字段。", 
+        "Example": "返回响应时间的偏度：  \nstats skewness(response_time)  \n返回响应时间和响应长度的偏度：  \nstats skewness(response_time, response_len)",
+        "Supported functions and syntax": "skewness(X1, X2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "kurtosis", 
+        "Description": "返回字段X1, X2…​的峰度，字段X1, X2…​必须为数值类型，该函数支持多字段。", 
+        "Example": "返回响应时间的峰度：  \nstats kurtosis(response_time)  \n返回响应时间和响应长度的峰度：  \nstats kurtosis(response_time, response_len)",
+        "Supported functions and syntax": "kurtosis(X1, X2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "covariance", 
+        "Description": "返回字段X1, X2…​的协方差，字段X1, X2…​必须为数值类型，该函数需要至少两个字段。", 
+        "Example": "返回响应时间和响应长度的协方差：  \nstats covariance(response_time, response_len)",
+        "Supported functions and syntax": "covariance(X1, X2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "correlation", 
+        "Description": "返回字段X1, X2…​的相关系数，字段X1, X2…​必须为数值类型，该函数需要至少两个字段。", 
+        "Example": "返回响应时间和响应长度的相关系数：  \nstats correlation(response_time, response_len)",
+        "Supported functions and syntax": "correlation(X1, X2…​)", 
+        "Type of function": "multi函数"
+    },{
+        "Command_Name": "derivative", 
+        "Description": "统计桶间的字段X根据时间字段T的变化速率  \n具体计算方法：(currentX - previousX) / (currentT - previousT)  \ncurrentX为当前桶的字段X  \npreviousX为上一个桶的字段X  \ncurrentT为当前桶的时间字段T  \npreviousT为上一个桶的时间字段T", 
+        "Example": "返回当前桶和上一个桶的指定字段值的变化速率 streamstats derivative(value, ts)",
+        "Supported functions and syntax": "derivative(X,T)", 
+        "Type of function": "其他函数"
+    }
+]

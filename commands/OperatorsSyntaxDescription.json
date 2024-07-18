@@ -1,0 +1,13 @@
+[
+    {
+        "Command_Name": "as",
+        "Description": "重命名关键字",
+        "Supported functions and syntax": "stats count(field_old) as field_new",
+        "Type of function": "Keyword"
+    },{
+        "Command_Name": "by",
+        "Description": "分组关键字",
+        "Supported functions and syntax": "stats count() by <field-list>",
+        "Type of function": "Keyword"
+    }
+]
