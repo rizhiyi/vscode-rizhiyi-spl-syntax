@@ -35,7 +35,7 @@
 
 # 离线安裝
 
-1. 请在此处下载最新的包：https://github.com/rizhiyi/vscode-rizhiyi-spl-syntax/releases/tag/Latest
+1. 请在此处下载最新的包：https://github.com/rizhiyi/vscode-rizhiyi-spl-syntax/releases
 
 2. 按照下图方式操作即可
 

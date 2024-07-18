@@ -1,0 +1,28 @@
+index=zhangwu "集团场景三：账务交易,充值接口A_DEPOSIT_28,入参" appname:zhangwu 
+|stats count(json.data.stdCcrRecharge.sessionId) as value
+|eval endpoint="调用量",service="重点业务监控.充值接口",name="调用量",time_interval=60
+|append [[
+    index=zhangwu "集团场景三：账务交易,充值接口A_DEPOSIT_28,出参"
+    |stats count() as value
+    |eval endpoint="响应量",service="重点业务监控.充值接口",name="响应量",time_interval=60
+]]
+|append [[
+    index=zhangwu "集团场景三：账务交易,充值接口A_DEPOSIT_28,出参" NOT (json.data.errorCode:1251 OR json.data.errorCode:1203 OR json.data.errorCode:1401 OR json.data.errorCode:1205 OR json.data.errorCode:6006 OR json.data.errorCode:6031 OR json.data.errorCode:6037 OR json.data.errorCode:6009 OR json.data.errorCode:1404 OR json.data.errorCode:1205 OR json.data.errorCode:6030 OR json.data.errorCode:6007 OR json.data.errorCode:6032 OR json.data.errorCode:501 OR json.data.errorCode:241 OR json.data.errorCode:526 OR json.data.errorCode:566 OR json.data.errorCode:242 OR json.data.errorCode:0)
+    |stats count() as value
+    |eval endpoint="失败量",service="重点业务监控.充值接口",name="失败量",time_interval=60
+]]
+|append [[ 
+    index=zhangwu `check` "集团场景三：账务交易,充值接口A_DEPOSIT_28,出参" json.data.errorCode:*
+    |stats count() as allCnt
+    |eval data="zhangwu"
+    |join type=left data [[    
+        index=zhangwu "集团场景三：账务交易,充值接口A_DEPOSIT_28,出参" AND (json.data.errorCode:1251 OR json.data.errorCode:1203 OR json.data.errorCode:1401 OR json.data.errorCode:1205 OR json.data.errorCode:6006 OR json.data.errorCode:6031 OR json.data.errorCode:6037 OR json.data.errorCode:6009 OR json.data.errorCode:1404 OR json.data.errorCode:1205 OR json.data.errorCode:6030 OR json.data.errorCode:6007 OR json.data.errorCode:6032 OR json.data.errorCode:501 OR json.data.errorCode:241 OR json.data.errorCode:526 OR json.data.errorCode:566 OR json.data.errorCode:242 OR json.data.errorCode:0)
+        |stats count() as succCnt
+        |eval data="zhangwu"
+    ]]
+    |eval succCnt=if(empty(succCnt),0,succCnt)
+    |eval value=round(succCnt/allCnt*100,2)
+    |eval value=if(empty(value),100,value)
+    |eval endpoint="成功率",service="重点业务监控.充值接口",name="成功率",time_interval=60
+]]
+|eval time=relative_time(now(), "-1m/m")

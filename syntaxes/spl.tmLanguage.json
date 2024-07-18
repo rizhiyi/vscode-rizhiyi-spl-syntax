@@ -42,17 +42,12 @@
 	  },
 	  {
 		"comment": "语言常量",
-		"match": "(?-i)\\b(as|by|OR|AND|over|output|outputnew|appname|tag|context_id|timestamp|logtype|hostname|ip|NOT|true|false)\\b",
+		"match": "\\b(as|by|OR|AND|over|output|outputnew|span|type|appname|tag|context_id|timestamp|logtype|hostname|ip|NOT|true|false|index)\\b",
 		"name": "constant.language.rizhiyi_spl"
 	  },
 	  {
-		"comment": "Macro(宏定义)参数",
-		"match": "(?<=\\(|,|[^=]\\s{300})([^\\(\\)\\\",=]+)(?=\\)|,)",
-		"name": "variable.parameter.rizhiyi_spl"
-	  },
-	  {
 		"comment": "变量",
-		"match": "([\\w\\.]+)(\\[\\]|\\{\\})?([\\s]*)(?=\\=)",
+		"match": "([\\w\\.]+)(\\[\\]|$\\{\\})?([\\s]*)(?=\\=)",
 		"name": "variable.rizhiyi_spl"
 	  },
 	  {
@@ -61,21 +56,25 @@
 		"name": "keyword.operator.rizhiyi_spl"
 	  },
 	  {
+		"comment": "双引号",
 		"begin": "(?<!\\\\)\"",
 		"end": "(?<!\\\\)\"",
 		"name": "string.quoted.double.rizhiyi_spl"
 	  },
 	  {
+		"comment": "单引号",
 		"begin": "(?<!\\\\)'",
 		"end": "(?<!\\\\)'",
 		"name": "string.quoted.single.rizhiyi_spl"
 	  },
 	  {
+		"comment": "dbx相关命令",
 		"begin": "query=\\\"",
 		"end": "(?<!\\\\)\"",
 		"name": "meta.embedded.block.sql"
 	  },
 	  {
+		"comment": "dbx相关命令",
 		"begin": "connection=\\\"",
 		"end": "(?<!\\\\)\"",
 		"name": "meta.embedded.block.sql"
@@ -84,12 +83,15 @@
 		"begin": "(?<!\\\\)```",
 		"end": "(?<!\\\\)```",
 		"name": "comment.block.rizhiyi_spl"
-	  },	  {
+	  },
+	  {
+		"comment": "注释",
 		"begin": "\\/\\/",
 		"end": "\\n",
 		"name": "comment.block.rizhiyi_spl"
 	  },
 	  {
+		"comment": "注释",
 		"begin": "\\/\\*",
 		"end": "\\*\\/",
 		"name": "comment.block.rizhiyi_spl"
