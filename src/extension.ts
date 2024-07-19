@@ -153,6 +153,7 @@ function formatText(text: string): string {
     let indentLevel: number = 0;
     let i: number = 0;
     let inQuote: boolean = false;
+    text = text.replace(/\s{0,}\n\s*/g, '');
 
     while (i < text.length) {
         if (text.slice(i, i + 2) === '[[') {
