@@ -47,7 +47,12 @@
 	  },
 	  {
 		"comment": "比较或赋值或运算",
-		"match": "(=|>|<|>=|<=|!=|\\|\\||&&|-|/|%|\\+|\\*)",
+		"match": "(=|>|<|>=|<=|!=|\\|\\||&&|-|%|\\+|\\*)",
+		"name": "keyword.operator.rizhiyi_spl"
+	  },
+	  {
+		"comment": "除法",
+		"match": "[a-zA-Z0-9-_ ](/)[a-zA-Z0-9-_ ]",
 		"name": "keyword.operator.rizhiyi_spl"
 	  },
 	  {
@@ -82,7 +87,7 @@
 	  {
 		"comment": "注释",
 		"begin": "\\/\\/",
-		"end": "\\n",
+		"end": "(\\n|\\|)",
 		"name": "comment.block.rizhiyi_spl"
 	  },
 	  {
