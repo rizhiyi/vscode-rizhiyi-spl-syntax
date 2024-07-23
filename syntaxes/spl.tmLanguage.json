@@ -52,7 +52,7 @@
 	  },
 	  {
 		"comment": "除法",
-		"match": "(?<=([a-zA-Z0-9-_]\\s*))/",
+		"match": "(?<=([a-zA-Z0-9-_]\\s*))/(?=\\s*[a-zA-Z0-9-_])",
 		"name": "keyword.operator.rizhiyi_spl"
 	  },
 	  {
@@ -77,7 +77,7 @@
 		"comment": "dbx相关命令",
 		"begin": "connection=\\\"",
 		"end": "(?<!\\\\)\"",
-		"name": "meta.embedded.block.sql"
+		"name": "meta.embedded.block.spl"
 	  },
 	  {
 		"begin": "(?<!\\\\)```",

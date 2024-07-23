@@ -153,6 +153,7 @@ function formatText(text: string): string {
     let indentLevel: number = 0;
     let i: number = 0;
     let inQuote: boolean = false;
+    text = text.replace(/\s*\s\[/g, ' [');
     text = text.replace(/\[\s{0,}\n\s*/g, '[');
     text = text.replace(/\|\s+(\w+)/g, '|$1');
     while (i < text.length) {
@@ -175,7 +176,7 @@ function formatText(text: string): string {
             i += 1;
         } else if (text.slice(i, i + 2) === '${' && text.indexOf('}', i) > i) {
             let endVar = text.indexOf('}', i) + 1;
-            result.push('\n' + ' '.repeat(indentLevel * 4) + text.slice(i, endVar));
+            result.push(' '.repeat(indentLevel * 4) + text.slice(i, endVar));
             i = endVar;
         } else {
             result.push(text[i]);
