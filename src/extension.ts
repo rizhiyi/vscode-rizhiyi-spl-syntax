@@ -154,7 +154,7 @@ function formatText(text: string): string {
     let i: number = 0;
     let inQuote: boolean = false;
     text = text.replace(/\[\s{0,}\n\s*/g, '[');
-    console.log(text);
+    text = text.replace(/\|\s+(\w+)/g, '|$1');
     while (i < text.length) {
         if (text.slice(i, i + 2) === '[[') {
             result.push('[[');
