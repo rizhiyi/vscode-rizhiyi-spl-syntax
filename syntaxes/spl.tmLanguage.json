@@ -37,7 +37,7 @@
 	  },
 	  {
 		"comment": "语言常量",
-		"match": "\\b(as|by|OR|AND|over|output|outputnew|span|type|appname|tag|context_id|timestamp|logtype|hostname|ip|NOT|true|false|index)\\b",
+		"match": "\\b(as|by|OR|AND|over|output|outputnew|span|type|appname|tag|context_id|timestamp|logtype|hostname|ip|NOT|true|false|index|starttime|endtime)\\b",
 		"name": "constant.language.rizhiyi_spl"
 	  },
 	  {
@@ -47,12 +47,12 @@
 	  },
 	  {
 		"comment": "比较或赋值或运算",
-		"match": "(=|>|<|>=|<=|!=|\\|\\||&&|-|%|\\+|\\*)",
+		"match": "(=|>|<|>=|<=|!=|\\|\\||&&|-|%|\\+|\\*|:)",
 		"name": "keyword.operator.rizhiyi_spl"
 	  },
 	  {
 		"comment": "除法",
-		"match": "[a-zA-Z0-9-_ ](/)[a-zA-Z0-9-_ ]",
+		"match": "(?<=([a-zA-Z0-9-_]\\s*))/",
 		"name": "keyword.operator.rizhiyi_spl"
 	  },
 	  {
