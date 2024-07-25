@@ -26,11 +26,6 @@
 		"name": "entity.name.function.rizhiyi_spl"
 	  },
 	  {
-		"comment": "数值",
-		"match": "\\b(\\d+)\\b",
-		"name": "constant.numeric.rizhiyi_spl"
-	  },
-	  {
 		"comment": "转义字符",
 		"match": "(\\\\\\\\|\\\\\\||\\\\\\*|\\\\\\=)",
 		"name": "contant.character.escape.rizhiyi_spl"
