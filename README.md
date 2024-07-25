@@ -1,6 +1,6 @@
 <h1 align="center"> 日志易SPL语法高亮VSCode插件 </h1>
 
-![](https://s3.johnwick.app/img/windows/2024/07/18/202407181442241.gif)
+  ![](https://s3.johnwick.app/img/windows/2024/07/25/202407251802941.gif)
 
 # 特点
 
@@ -21,7 +21,16 @@
 - 300+SPL命令的语法说明提示
 
   ![](https://s3.johnwick.app/img/windows/2024/07/18/202407181445539.png)
-  
+
+
+# 如何启用插件功能
+
+1. 新建一个`.spl`或者`.txt`后缀的文件
+
+2. 不新建文件情况下选择定义的`spl`语言即可，详情如下图
+
+  ![](https://s3.johnwick.app/img/windows/2024/07/25/202407251754619.gif)
+
 
 # 快捷键绑定
 
@@ -40,3 +49,5 @@
 2. 按照下图方式操作即可
 
   ![](https://s3.johnwick.app/img/windows/2024/07/18/202407181446613.png)
+
+

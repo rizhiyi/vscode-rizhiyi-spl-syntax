@@ -7,7 +7,7 @@
 	"patterns": [
 	  {
 		"comment": "内置命令",
-		"match": "(?<=(\\||\\[))([\\s]*)\\b(accum|addcoltotals|addinfo|addtotals|append|appendcols|autoregress|bucket|chart|collect|composite|correlation|dbxexec|dbxlookup|dbxoutput|dbxquery|dedup|delete|download|esma|eval|eventstats|fields|filldown|fillnull|foreach|fromes|fromkafkapy|gentimes|geostats|head|history|inputlookup|iplocation|join|jpath|kvextract|ldapfetch|ldapfilter|ldapgroup|ldapsearch|ldaptestconnection|limit|loadjob|localop|lookup|lookup2|makecontinuous|makemv|makeresults|map|movingavg|multireport|multisearch|mvcombine|mvexpand|outputlookup|parse|partition|rare|rename|replace|rest|rollingstd|save|search|sort|stats|strcat|streamstats|table|timechart|timewrap|top|transaction|transpose|typeahead|union|unpivot|untable|where|xpath)\\b(?=[\\s])",
+		"match": "\\b(accum|addcoltotals|addinfo|addtotals|append|appendcols|autoregress|bucket|chart|collect|composite|correlation|dbxexec|dbxlookup|dbxoutput|dbxquery|dedup|delete|download|esma|eval|eventstats|fields|filldown|fillnull|foreach|fromes|fromkafkapy|gentimes|geostats|head|history|inputlookup|iplocation|join|jpath|kvextract|ldapfetch|ldapfilter|ldapgroup|ldapsearch|ldaptestconnection|limit|loadjob|localop|lookup|lookup2|makecontinuous|makemv|makeresults|map|movingavg|multireport|multisearch|mvcombine|mvexpand|outputlookup|parse|partition|rare|rename|replace|rest|rollingstd|save|search|sort|stats|strcat|streamstats|table|timechart|timewrap|top|transaction|transpose|typeahead|union|unpivot|untable|where|xpath)\\b",
 		"name": "entity.name.class.rizhiyi_spl"
 	  },
 	  {

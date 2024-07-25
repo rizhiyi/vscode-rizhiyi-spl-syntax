@@ -98,7 +98,7 @@ export function returnCompletionItemfromJSON(context: vscode.ExtensionContext, f
 
 export function activate(context: vscode.ExtensionContext) {
 	let rizhiyiSelector:vscode.DocumentSelector = {
-		scheme: 'file',
+		// scheme: 'file',
 		language: 'rizhiyi_spl'
 	};
 	let mainFunctions = returnCompletionItemfromJSON(context, 'CommandDescriptionList');
@@ -156,6 +156,7 @@ function formatText(text: string): string {
     text = text.replace(/\s*\s\[/g, ' [');
     text = text.replace(/\[\s{0,}\n\s*/g, '[');
     text = text.replace(/\|\s+(\w+)/g, '|$1');
+    text = text.replace(/(append|join)(\[)/g, '$1 $2');
     while (i < text.length) {
         if (text.slice(i, i + 2) === '[[') {
             result.push('[[');
