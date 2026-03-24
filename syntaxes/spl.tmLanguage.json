@@ -90,7 +90,12 @@
 		"begin": "\\/\\*",
 		"end": "\\*\\/",
 		"name": "comment.block.rizhiyi_spl"
-	}
+	},{
+		"comment": "dbx相关命令",
+		"begin": "query=\\\"",
+		"end": "(?<!\\\\)\"",
+		"name": "meta.embedded.block.sql"
+	  }
 	],
 	"scopeName": "source.rizhiyi_spl"
   }
